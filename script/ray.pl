@@ -32,14 +32,11 @@ elsif ($help) {
 elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
 }
+else if(@ARGV) {
+    Aion::Ray->new(files => $files)->transforms->tests;
+}
 else {
-    my @files = @ARGV? @ARGV: split /\n/, `find lib -name '*.md'`;
-    
-    for my $file (@files) {
-
-        print $file, "\n";
-        Aion::Ray->new(file => $file)->transform->test;
-    }
+    Aion::Ray->new->transforms->tests;
 }
 
 __END__
