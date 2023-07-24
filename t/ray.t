@@ -81,6 +81,22 @@ ok -f TEST, "Is test file";
 ok -f "cover_db/coverage.html", "Is cover file";
 
 my $pm = read_text PM;
-like $pm, qr/__END__/, 'Is section __END__';
+is $pm, << 'END', 'File PM';
+package ray_test_Mod;
+
+our A = 10;
+our B = [1, 2, 3];
+our C = "\$hi";
+
+1;
+
+__END__
+END
+
+my $test = read_text TEST;
+is $test, << 'END', 'File TEST';
+123
+END
+
 
 done_testing;
