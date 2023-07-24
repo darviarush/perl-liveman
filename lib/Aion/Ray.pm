@@ -2,10 +2,10 @@ package Aion::Ray;
 use 5.008001;
 use strict;
 use warnings;
+use utf8;
 
 our $VERSION = "0.01";
 
-use Devel::Cover;
 use Term::ANSIColor qw/colored/;
 
 
@@ -20,7 +20,7 @@ sub transforms {
     my ($self) = @_;
     my $mds = $self->{files} // [split /\n/, `find lib -name '*.md'`];
     for my $md (@$mds) {
-        my $test = ($md =~ s/\.md$/.t/r) =~ s/^lib/t/r;
+        my $test = (($md =~ s/\.md$/.t/r) =~ s/^lib/t/r) =~ s/[A-Z]/"-".lc $&/gre;
         my $mdmtime = (stat $md)[9];
         die "Нет файла $md" if !$mdmtime;
         $self->transform($md, $test) if !-e $test || $mdmtime > (stat $test)[9];
@@ -38,6 +38,12 @@ sub _q_esc {
     $_[0] =~ s!'!\\'!gr
 }
 
+# Создаёт путь
+sub _mkpath {
+    my ($p) = @_;
+    mkdir $`, 0755 while $p =~ /\//g;
+}
+
 # Трансформирует md-файл в тест и документацию
 sub transform {
     my ($self, $md, $test) = @_;
@@ -45,6 +51,7 @@ sub transform {
     print "🔖 $md ", colored("↦", "white"), " $test ", colored("...", "white"), " ";
 
     open my $f, "<:utf8", $md or die "$md: $!";
+    _mkpath($test);
     open my $t, ">:utf8", $test or die "$test: $!";
 
     my $subtests = 0;
@@ -52,12 +59,12 @@ sub transform {
 
     while(<$f>) {
 
-        if(in_code) {
+        if($in_code) {
             if(/^```/) { # Закрываем код
                 $in_code = 0;
                 print "\n";
             }
-            elsif(/#\s*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\|=>|↦)\s*(.*?)\s*$/) {
+            elsif(/#\s*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦))\s*(?<expected>.+?)\s*$/n) {
                 my ($code, $expected) = ($`, $+{expected});
                 my $q = _q_esc($_);
                 if(exists $+{is_deeply}) { print "is_deeply ($code), ($expected), '$q';\n" }
@@ -116,10 +123,9 @@ sub tests {
     my ($self) = @_;
     
     if($self->{files}) {
-        my $ = $self->{files};
-        `prove `
+        system "yath test -j4 @{$self->{files}}";
     } else {
-
+        system "cover --delete; yath test -j4 --cover && cover && opera cover_db/coverage.html";
     }
 }
 

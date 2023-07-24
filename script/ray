@@ -16,8 +16,7 @@ my $parse_options_ok = GetOptions(
     'help|h' => \( my $help = 0 ),
     'man'    => \( my $man  = 0 ),
 
-    'e|ext=s'          => \( my $ext          = 'pm,pl,plx,t' ),
-    'i|interpreters=s' => \( my $interpreters = 'perl,perl5' ),
+    #'o|options=s'          => \( my $options = '-j4' ),
 );
 
 if ( !$parse_options_ok ) {
@@ -32,8 +31,8 @@ elsif ($help) {
 elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
 }
-else if(@ARGV) {
-    Aion::Ray->new(files => $files)->transforms->tests;
+elsif(@ARGV) {
+    Aion::Ray->new(files => \@ARGV)->transforms->tests;
 }
 else {
     Aion::Ray->new->transforms->tests;
