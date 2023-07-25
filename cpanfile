@@ -5,4 +5,5 @@ on 'test' => sub {
 };
 
 requires 'App::Yath', '1.000152';
+requires 'Devel::Cover';
 requires 'Term::ANSIColor', '5.01';

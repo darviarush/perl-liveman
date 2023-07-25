@@ -7,12 +7,21 @@ use utf8;
 our $VERSION = "0.01";
 
 use Term::ANSIColor qw/colored/;
+use File::Slurper qw/read_text write_text/;
 
 
 # Конструктор
 sub new {
     my $cls = shift;
-    bless {@_}, $cls
+    my $self = bless {@_}, $cls;
+    delete $self->{files} if $self->{files} && !@{$self->{files}};
+    $self
+}
+
+# Получить путь к тестовому файлу из пути к md-файлу
+sub test_path {
+    my ($self, $md) = @_;
+    (($md =~ s/\.md$/.t/r) =~ s/^lib/t/r) =~ s/[A-Z]/"-".lc $&/gre
 }
 
 # Трансформирует md-файлы
@@ -20,7 +29,7 @@ sub transforms {
     my ($self) = @_;
     my $mds = $self->{files} // [split /\n/, `find lib -name '*.md'`];
     for my $md (@$mds) {
-        my $test = (($md =~ s/\.md$/.t/r) =~ s/^lib/t/r) =~ s/[A-Z]/"-".lc $&/gre;
+        my $test = $self->test_path($md);
         my $mdmtime = (stat $md)[9];
         die "Нет файла $md" if !$mdmtime;
         $self->transform($md, $test) if !-e $test || $mdmtime > (stat $test)[9];
@@ -38,6 +47,11 @@ sub _q_esc {
     $_[0] =~ s!'!\\'!gr
 }
 
+# Обрезает пробельные символы
+sub _trim {
+    $_[0] =~ s!^\s*(.*?)\s*\z!$1!sr
+}
+
 # Создаёт путь
 sub _mkpath {
     my ($p) = @_;
@@ -47,6 +61,7 @@ sub _mkpath {
 # Трансформирует md-файл в тест и документацию
 sub transform {
     my ($self, $md, $test) = @_;
+    $test //= $self->test_path($md);
 
     print "🔖 $md ", colored("↦", "white"), " $test ", colored("...", "white"), " ";
 
@@ -54,66 +69,100 @@ sub transform {
     _mkpath($test);
     open my $t, ">:utf8", $test or die "$test: $!";
 
-    my $subtests = 0;
+    print $t "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; ";
+
+    my @markdown;
+    my $close_subtest; my $title; my $use_title = 1;
     my $in_code; my $lang;
 
     while(<$f>) {
+        push @markdown, $_;
 
         if($in_code) {
             if(/^```/) { # Закрываем код
                 $in_code = 0;
-                print "\n";
-            }
-            elsif(/#\s*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦))\s*(?<expected>.+?)\s*$/n) {
-                my ($code, $expected) = ($`, $+{expected});
-                my $q = _q_esc($_);
-                if(exists $+{is_deeply}) { print "is_deeply ($code), ($expected), '$q';\n" }
-                elsif(exists $+{is})   { print "is ($code), ($expected), '$q';\n" }
-                elsif(exists $+{qqis}) { my $ex = _qq_esc($expected); print "is ($code), \"$ex\", '$q';\n" }
-                elsif(exists $+{qis})  { my $ex = _q_esc($expected);  print "is ($code), '$ex', '$q';\n" }
-            }
-            else { # Обычная строка кода
-                print "$_\n";
-            }
-        } else {
-
-            if(/^(#+)\s*/) {
-                my $title = $`;
-                my $level = length $1;
-
-                $title =~ s!'!\\$&!g;
-
-                my $close = my $open = 0;
-
-                if($level > $subtests) {
-                    $open = $level - $subtests;
-                } else {
-                    $open = 1;
-                    $close = $subtests - $level;
-                }
-
-                $subtests -= $close; $subtests += $open;
-
-                print $t "done_testing() };" for 1..$close;
-                print $t "subtest '$title' => sub {" for 1..$open;
-
                 print $t "\n";
             }
-            elsif(/^```(\w*)/) {
+            elsif($lang =~ /^(perl|)$/) {
+                if(/#\s*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦))\s*(?<expected>.+?)\s*$/n) {
+                    my ($code, $expected) = ($`, $+{expected});
+                    my $q = do { _q_esc($_ =~ s!\s*$!!r) }; # Тут do, чтобы сохранить %+
+                    $code = _trim($code);
+
+                    print $t "\t"; # Начинаем строку с табуляции
+
+                    if(exists $+{is_deeply}) { print $t "is_deeply do {$code}, do {$expected}, '$q';\n" }
+                    elsif(exists $+{is})   { print $t "is do {$code}, do{$expected}, '$q';\n" }
+                    elsif(exists $+{qqis}) { my $ex = _qq_esc($expected); print $t "is do {$code}, \"$ex\", '$q';\n" }
+                    elsif(exists $+{qis})  { my $ex = _q_esc($expected);  print $t "is do {$code}, '$ex', '$q';\n" }
+                    else { # Что-то ужасное вырвалось на волю!
+                        print $t "???\n";
+                    }
+                }
+                else { # Обычная строка кода
+                    print $t "\t$_";
+                }
+            }
+            else { # На каком-то другом языке
+                print $t "# $_";
+            }
+        } else { # В тексте
+
+            if(/^(#+)\s*/) { # Сохраняем заголовок
+                $title = _trim($');
+                print $t "# $_";
+            }
+            elsif(/^```(\w*)/) { # Открываем код
+
                 $in_code = 1;
                 $lang = $1;
                 print $t "\n";
+
+                if($use_title ne $title) {
+
+                    print $t "done_testing; }; " if $close_subtest;
+                    $close_subtest = 1;
+
+                    my $title_q = _q_esc($title);
+                    print $t "subtest '$title_q' => sub { ";
+
+                    $use_title = $title;
+                }
             }
-            else {
-                print $t "# $_\n";
+            else { # Документацию печатаем в виде комментариев, чтобы сохранить нумерацию строк
+                print $t "# $_";
             }
         }
     }
+
+    print $t "\n\tdone_testing;\n};\n" if $close_subtest;
+    print $t "\ndone_testing;\n";
 
     close $f;
     close $t;
 
     print colored("ok", "bright_green"), "\n";
+
+    my $pm = $md =~ s/\.md$/.pm/r;
+    if(!-e $pm) {
+        my $pkg = ($pm =~ s!^lib/(.*)\.pm$!$1!r) =~ s!/!::!gr;
+        write_text $pm, "package $pkg;\n\n1;";
+    }
+
+    use Markdown::To::POD 'markdown_to_pod';
+    my $pod = markdown_to_pod(join "", @markdown);
+
+    # Секции кода:
+    $pod =~ s!^```(\w*)[\t ]*\n(.*?)^```[\t ]*\n! $2 =~ s/^/\t/gmr !gmse;
+ 
+    my $module = read_text $pm;
+    $module =~ s!(^__END__[\t ]*\n.*)?\z!
+__END__
+
+=encoding utf-8
+
+$pod!smn;
+    write_text $pm, $module;
 
     $self
 }
@@ -121,12 +170,15 @@ sub transform {
 # Запустить тесты
 sub tests {
     my ($self) = @_;
-    
+
     if($self->{files}) {
-        system "yath test -j4 @{$self->{files}}";
-    } else {
-        system "cover --delete; yath test -j4 --cover && cover && opera cover_db/coverage.html";
+        return system "yath test -j4 @{$self->{files}}";
     }
+
+    system "cover -delete";
+    system "yath test -j4 --cover";
+    system "cover";
+    system "opera cover_db/coverage.html" if $self->{open};
 }
 
 1;
@@ -136,15 +188,34 @@ __END__
 
 =head1 NAME
 
-Aion::Ray - It's new $module
+Aion::Ray - markdown compiller to test and pod.
 
 =head1 SYNOPSIS
 
     use Aion::Ray;
 
+    my $ray = Aion::Ray->new;
+
+    # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+    $ray->transform("lib/Example.md");
+
+    # compile all lib/**.md files
+    $ray->transforms;
+
+    # start tests with yath
+    $ray->tests;
+
+    # limit ray to these files for operations transforms and tests (without cover)
+    my $ray = Aion::Ray->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
+
 =head1 DESCRIPTION
 
-Aion::Ray is ...
+Aion::Ray compile lib/**.md files to t/**.t files
+and it added pod-documentation to section __END__ to lib/**.pm files.
+
+Use C<ray> command for compile:
+
+    ray
 
 =head1 LICENSE
 
