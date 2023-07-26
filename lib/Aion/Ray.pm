@@ -8,6 +8,7 @@ our $VERSION = "0.01";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
+use Markdown::To::POD qw/markdown_to_pod/;
 
 
 # Конструктор
@@ -21,18 +22,22 @@ sub new {
 # Получить путь к тестовому файлу из пути к md-файлу
 sub test_path {
     my ($self, $md) = @_;
-    (($md =~ s/\.md$/.t/r) =~ s/^lib/t/r) =~ s/[A-Z]/"-".lc $&/gre
+    $md =~ s!^lib/(.*?)([^/]*)\.md$!"t/$1" . (lcfirst($2) =~ s/[A-Z]/"-".lc $&/gre) . ".t" !e;
+    $md
 }
 
 # Трансформирует md-файлы
 sub transforms {
     my ($self) = @_;
     my $mds = $self->{files} // [split /\n/, `find lib -name '*.md'`];
+
+    $self->{count} = 0;
+
     for my $md (@$mds) {
         my $test = $self->test_path($md);
         my $mdmtime = (stat $md)[9];
         die "Нет файла $md" if !$mdmtime;
-        $self->transform($md, $test) if !-e $test || $mdmtime > (stat $test)[9];
+        $self->transform($md, $test) if !-e $test || -e $test && $mdmtime > (stat $test)[9];
     }
     $self
 }
@@ -71,17 +76,22 @@ sub transform {
 
     print $t "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; ";
 
+    my @text;
     my @markdown;
-    my $close_subtest; my $title; my $use_title = 1;
+    my $close_subtest; my $title = 'Start'; my $use_title = 1;
     my $in_code; my $lang;
 
     while(<$f>) {
-        push @markdown, $_;
+        push @text, $_;
 
         if($in_code) {
             if(/^```/) { # Закрываем код
                 $in_code = 0;
                 print $t "\n";
+
+                pop @text;
+                push @markdown, "\n", (map "\t$_", @text), "\n";
+                @text = ();
             }
             elsif($lang =~ /^(perl|)$/) {
                 if(/#\s*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦))\s*(?<expected>.+?)\s*$/n) {
@@ -91,10 +101,10 @@ sub transform {
 
                     print $t "\t"; # Начинаем строку с табуляции
 
-                    if(exists $+{is_deeply}) { print $t "is_deeply do {$code}, do {$expected}, '$q';\n" }
-                    elsif(exists $+{is})   { print $t "is do {$code}, do{$expected}, '$q';\n" }
-                    elsif(exists $+{qqis}) { my $ex = _qq_esc($expected); print $t "is do {$code}, \"$ex\", '$q';\n" }
-                    elsif(exists $+{qis})  { my $ex = _q_esc($expected);  print $t "is do {$code}, '$ex', '$q';\n" }
+                    if(exists $+{is_deeply}) { print $t "is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
+                    elsif(exists $+{is})   { print $t "is scalar do {$code}, scalar do{$expected}, '$q';\n" }
+                    elsif(exists $+{qqis}) { my $ex = _qq_esc($expected); print $t "is scalar do {$code}, \"$ex\", '$q';\n" }
+                    elsif(exists $+{qis})  { my $ex = _q_esc($expected);  print $t "is scalar do {$code}, '$ex', '$q';\n" }
                     else { # Что-то ужасное вырвалось на волю!
                         print $t "???\n";
                     }
@@ -128,6 +138,10 @@ sub transform {
 
                     $use_title = $title;
                 }
+
+                pop @text;
+                push @markdown, markdown_to_pod(join "", @text);
+                @text = ();
             }
             else { # Документацию печатаем в виде комментариев, чтобы сохранить нумерацию строк
                 print $t "# $_";
@@ -149,11 +163,8 @@ sub transform {
         write_text $pm, "package $pkg;\n\n1;";
     }
 
-    use Markdown::To::POD 'markdown_to_pod';
-    my $pod = markdown_to_pod(join "", @markdown);
-
-    # Секции кода:
-    $pod =~ s!^```(\w*)[\t ]*\n(.*?)^```[\t ]*\n! $2 =~ s/^/\t/gmr !gmse;
+    push @markdown, markdown_to_pod(join "", @text);
+    my $pod = join "", @markdown;
  
     my $module = read_text $pm;
     $module =~ s!(^__END__[\t ]*\n.*)?\z!
@@ -163,6 +174,8 @@ __END__
 
 $pod!smn;
     write_text $pm, $module;
+
+    $self->{count}++;
 
     $self
 }

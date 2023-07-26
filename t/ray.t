@@ -12,6 +12,10 @@ use constant {
     MD => "lib/ray_test_Mod.md",
     PM => "lib/ray_test_Mod.pm",
     TEST => "t/ray_test_-mod.t",
+
+	MD2 => "lib/Mod2.md",
+    PM2 => "lib/Mod2.pm",
+    TEST2 => "t/mod2.t",
 };
 
 my $ray = Cwd::abs_path("script/ray");
@@ -72,10 +76,21 @@ It's fine.
 END
 
 # После прохождения должен появится файл t/ray_test_-mod.t и секция __END__ в lib/ray_test_Mod.pm
-my $ok = system "/usr/bin/perl -I$lib $ray";
-ok !$ok, "ray";
+#my $ok = system "/usr/bin/perl -I$lib $ray";
+#ok !$ok, "ray";
+
+use_ok "Aion::Ray";
+
+ok !-f TEST, "Is'nt test file";
+
+Aion::Ray->new->transforms;
 
 ok -f TEST, "Is test file";
+
+ok !-f "cover_db/coverage.html", "Is'nt cover file";
+
+Aion::Ray->new->tests;
+
 ok -f "cover_db/coverage.html", "Is cover file";
 
 my $pm = read_text PM;
@@ -107,7 +122,8 @@ ray_test_Mod — тестовый модуль
 	my $dollar = '$';
 	$ray_test_Mod::C # => ${dollar}hi
 	
-	$ray_test_Mod::C # > $hi
+	$ray_test_Mod::C # \> $hi
+	
 	
 	$ray_test_Mod::A # → 5+5
 	$ray_test_Mod::B # ⟶ [1, 2, 3]
@@ -136,19 +152,19 @@ use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98
 
 subtest 'SYNOPSIS' => sub { 	use ray_test_Mod;
 	
-	is do {$ray_test_Mod::A}, do{5+5}, '$ray_test_Mod::A # -> 5+5';
-	is_deeply do {$ray_test_Mod::B}, do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
+	is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
+	is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
 	
 	my $dollar = '$';
-	is do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
+	is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
 	
-	is do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
+	is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
 	
 	
-	is do {$ray_test_Mod::A}, do{5+5}, '$ray_test_Mod::A # → 5+5';
-	is_deeply do {$ray_test_Mod::B}, do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
-	is do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
-	is do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
+	is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
+	is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
+	is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
+	is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
 
 # 
 # # DESCRIPTION
@@ -165,6 +181,39 @@ subtest 'SYNOPSIS' => sub { 	use ray_test_Mod;
 
 done_testing;
 END
+
+
+# Добавляем файл:
+write_text MD2, << 'END';
+=SUBJECT
+
+```js
+console.log("js")
+```
+
+```perl
+10 # -> 10
+```
+END
+
+my $count = Aion::Ray->new->transforms->{count};
+
+is $count, 1, "Old files not transition";
+ok -e PM2, "Is pm2";
+ok -e TEST2, "Is test2";
+
+is Aion::Ray->new(files => [MD2])->transforms->{count}, 0, "Old file in list";
+
+is Aion::Ray->new(files => [])->transforms->{count}, 0, "Old files not transforms";
+
+# Меняем время модификации файла:
+sleep 1;
+open my $f, ">>", MD2; print $f "\n"; close $f;
+
+is Aion::Ray->new(files => [MD2])->transforms->{count}, 1, "Young file";
+
+# Принудительная трансформация
+is Aion::Ray->new->transform(MD2)->{count}, 1, "Need transform";
 
 #system "rm -fr ${\DIR}";
 
