@@ -185,13 +185,16 @@ sub tests {
     my ($self) = @_;
 
     if($self->{files}) {
-        return system "yath test -j4 @{$self->{files}}";
+        local $, = " ";
+        $self->{exitcode} = system "yath test -j4 @{$self->{files}}";
+        return $self;
     }
 
     system "cover -delete";
-    system "yath test -j4 --cover";
-    system "cover";
+    $self->{exitcode} = system "yath test -j4 --cover" or return $self;
+    system "cover -report html_basic";
     system "opera cover_db/coverage.html" if $self->{open};
+    return $self;
 }
 
 1;
