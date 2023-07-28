@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use utf8;
+
+use open qw/:std :utf8/;
+
+use Getopt::Long qw(:config no_ignore_case);
+use Pod::Usage;
+use Term::ANSIColor qw/:constants/;
+
+use Liveman;
+
+my $parse_options_ok = GetOptions(
+    'help|h' => \( my $help = 0 ),
+    'man'    => \( my $man  = 0 ),
+
+    'o|open' => \( my $open = 0 ),
+);
+
+if ( !$parse_options_ok ) {
+    pod2usage(2);
+}
+elsif ($help) {
+    pod2usage(
+        -sections => "NAME|SYNOPSIS|DESCRIPTION|OPTIONS",
+        -verbose  => 99
+    );
+}
+elsif ($man) {
+    pod2usage( -exitval => 0, -verbose => 2 );
+}
+else {
+    exit Liveman->new(files => \@ARGV, open => $open)->transforms->tests;
+}
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+B<liveman> - "живой мануал". Утилита для преобразования B<lib/**.md>-файлов в файлы тестов (B<t/**.t>) и документацию (B<POD>), которая помещается в соответствующий модуль B<lib/**.pm>
+
+=head1 VERSION
+
+Version 0.01
+
+=head1 SYNOPSIS
+
+    liveman [-h] [--man] [-o] [<files> ...]
+
+=head1 DESCRIPTION
+
+Проблема современных проектов в том, что документация оторвана от тестирования.
+Это означает, что примеры в документации могут быть нерабочими, а сама документация — отставать от кода.
+
+Метод одновременного документирования и тестирования решает данную проблему.
+
+Для документирования выбран формат md, как наиболее лёгкий для ввода и широкораспространённый. 
+Секции кода B<perl>, описанные в нём, транслируются в тест. А докуметация транслируется в B<POD> и добавляется в секцию B<__END__> модуля perl.
+
+Другими словами B<liveman> преобразует B<lib/**.md>-файлы в файлы тестов (B<t/**.t>) и документацию, которая помещается в соответствующий модуль B<lib/**.pm>. 
+И сразу же запускает тесты с покрытием.
+
+Покрытие можно посмотреть в файле cover_db/coverage.html.
+
+Примечание: в B<.gitignore> лучше сразу же поместить B<cover_db/>.
+
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Показать помощь и выйти.
+
+=item B<--man>
+
+Распечатать мануал и завершиться.
+
+=item B<-o>, B<--open>
+
+Открыть в браузере покрытие.
+
+=back
+
+=head1 LICENSE
+
+⚖ B<GPLv3>
+
+=head1 AUTHOR
+
+Yaroslav O. Kosmina E<lt>darviarush@mail.ruE<gt>
+
+=cut

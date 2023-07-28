@@ -18,7 +18,7 @@ use constant {
     TEST2 => "t/mod2.t",
 };
 
-my $ray = Cwd::abs_path("script/ray");
+my $liveman = Cwd::abs_path("script/liveman");
 my $lib = Cwd::abs_path("lib");
 
 system "rm -fr ${\DIR}";
@@ -76,20 +76,20 @@ It's fine.
 END
 
 # После прохождения должен появится файл t/ray_test_-mod.t и секция __END__ в lib/ray_test_Mod.pm
-#my $ok = system "/usr/bin/perl -I$lib $ray";
+#my $ok = system "/usr/bin/perl -I$lib $liveman";
 #ok !$ok, "ray";
 
-use_ok "Aion::Ray";
+use_ok "Liveman";
 
 ok !-f TEST, "Is'nt test file";
 
-Aion::Ray->new->transforms;
+Liveman->new->transforms;
 
 ok -f TEST, "Is test file";
 
 ok !-f "cover_db/coverage.html", "Is'nt cover file";
 
-Aion::Ray->new->tests;
+Liveman->new->tests;
 
 ok -f "cover_db/coverage.html", "Is cover file";
 
@@ -196,24 +196,24 @@ console.log("js")
 ```
 END
 
-my $count = Aion::Ray->new->transforms->{count};
+my $count = Liveman->new->transforms->{count};
 
 is $count, 1, "Old files not transition";
 ok -e PM2, "Is pm2";
 ok -e TEST2, "Is test2";
 
-is Aion::Ray->new(files => [MD2])->transforms->{count}, 0, "Old file in list";
+is Liveman->new(files => [MD2])->transforms->{count}, 0, "Old file in list";
 
-is Aion::Ray->new(files => [])->transforms->{count}, 0, "Old files not transforms";
+is Liveman->new(files => [])->transforms->{count}, 0, "Old files not transforms";
 
 # Меняем время модификации файла:
 sleep 1;
 open my $f, ">>", MD2; print $f "\n"; close $f;
 
-is Aion::Ray->new(files => [MD2])->transforms->{count}, 1, "Young file";
+is Liveman->new(files => [MD2])->transforms->{count}, 1, "Young file";
 
 # Принудительная трансформация
-is Aion::Ray->new->transform(MD2)->{count}, 1, "Need transform";
+is Liveman->new->transform(MD2)->{count}, 1, "Need transform";
 
 #system "rm -fr ${\DIR}";
 

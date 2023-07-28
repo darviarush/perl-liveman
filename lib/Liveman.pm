@@ -1,4 +1,4 @@
-package Aion::Ray;
+package Liveman;
 use 5.008001;
 use strict;
 use warnings;
@@ -191,9 +191,9 @@ sub tests {
     }
 
     system "cover -delete";
-    $self->{exitcode} = system "yath test -j4 --cover" or return $self;
+    $self->{exitcode} = system "yath test -j4 --cover" and return $self;
     system "cover -report html_basic";
-    system "opera cover_db/coverage.html" if $self->{open};
+    system "opera cover_db/coverage.html || xdg-open cover_db/coverage.html" if $self->{open};
     return $self;
 }
 
@@ -204,34 +204,165 @@ __END__
 
 =head1 NAME
 
-Aion::Ray - markdown compiller to test and pod.
+Liveman - markdown compiller to test and pod.
 
 =head1 SYNOPSIS
 
-    use Aion::Ray;
+    use Liveman;
 
-    my $ray = Aion::Ray->new;
+    my $liveman = Liveman->new;
 
     # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
-    $ray->transform("lib/Example.md");
+    $liveman->transform("lib/Example.md");
 
     # compile all lib/**.md files
-    $ray->transforms;
+    $liveman->transforms;
 
     # start tests with yath
-    $ray->tests;
+    $liveman->tests;
 
-    # limit ray to these files for operations transforms and tests (without cover)
-    my $ray = Aion::Ray->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
+    # limit liveman to these files for operations transforms and tests (without cover)
+    my $liveman = Liveman->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
 
 =head1 DESCRIPTION
 
-Aion::Ray compile lib/**.md files to t/**.t files
+The problem with modern projects is that the documentation is disconnected from testing.
+This means that the examples in the documentation may not work, and the documentation itself may lag behind the code.
+
+Liveman compile lib/**.md files to t/**.t files
 and it added pod-documentation to section __END__ to lib/**.pm files.
 
-Use C<ray> command for compile:
+Use C<liveman> command for compile the documentation to the tests in catalog of your project and starts the tests:
 
-    ray
+    liveman
+	
+=head1 EXAMPLE
+
+Is files:
+
+lib/ray_test_Mod.pm:
+
+	package ray_test_Mod;
+
+	our $A = 10;
+	our $B = [1, 2, 3];
+	our $C = "\$hi";
+
+	1;
+
+lib/ray_test_Mod.md:
+	
+	# NAME
+
+	ray_test_Mod — тестовый модуль
+
+	# SYNOPSIS
+
+	```perl
+	use ray_test_Mod;
+
+	$ray_test_Mod::A # -> 5+5
+	$ray_test_Mod::B # --> [1, 2, 3]
+
+	my $dollar = '$';
+	$ray_test_Mod::C # => ${dollar}hi
+
+	$ray_test_Mod::C # \> $hi
+
+
+	$ray_test_Mod::A # → 5+5
+	$ray_test_Mod::B # ⟶ [1, 2, 3]
+	$ray_test_Mod::C # ⇒ ${dollar}hi
+	$ray_test_Mod::C # ↦ $hi
+
+Start C<liveman>:
+
+	liveman -o
+	
+This command modify C<pm>-file:
+
+lib/ray_test_Mod.pm:
+
+	package ray_test_Mod;
+
+	our $A = 10;
+	our $B = [1, 2, 3];
+	our $C = "\$hi";
+
+	1;
+
+	__END__
+
+	=encoding utf-8
+
+	=head1 NAME
+
+	ray_test_Mod — тестовый модуль
+
+	=head1 SYNOPSIS
+
+		use ray_test_Mod;
+		
+		$ray_test_Mod::A # -> 5+5
+		$ray_test_Mod::B # --> [1, 2, 3]
+		
+		my $dollar = '$';
+		$ray_test_Mod::C # => ${dollar}hi
+		
+		$ray_test_Mod::C # \> $hi
+		
+		
+		$ray_test_Mod::A # → 5+5
+		$ray_test_Mod::B # ⟶ [1, 2, 3]
+		$ray_test_Mod::C # ⇒ ${dollar}hi
+		$ray_test_Mod::C # ↦ $hi
+
+	
+And this command make test:
+
+t/ray_test_-mod.t:
+
+	use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
+	# 
+	# ray_test_Mod — тестовый модуль
+	# 
+	# # SYNOPSIS
+	# 
+
+	subtest 'SYNOPSIS' => sub { 	use ray_test_Mod;
+		
+		is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
+		is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
+		
+		my $dollar = '$';
+		is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
+		
+		is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
+		
+		
+		is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
+		is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
+		is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
+		is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
+
+	# 
+	# # DESCRIPTION
+	# 
+	# It's fine.
+	# 
+	# # LICENSE
+	# 
+	# © Yaroslav O. Kosmina
+	# 2023
+
+		done_testing;
+	};
+
+	done_testing;
+
+Run it with coverage.
+
+Option C<-o> open coverage in browser (coverage file: cover_db/coverage.html).
 
 =head1 LICENSE
 
