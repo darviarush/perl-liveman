@@ -22,7 +22,7 @@ sub new {
 # Получить путь к тестовому файлу из пути к md-файлу
 sub test_path {
     my ($self, $md) = @_;
-    $md =~ s!^lib/(.*?)([^/]*)\.md$!"t/$1" . (lcfirst($2) =~ s/[A-Z]/"-".lc $&/gre) . ".t" !e;
+    $md =~ s!^lib/(.*)\.md$!"t/" . join("/", map {lcfirst($_) =~ s/[A-Z]/"-" . lc $&/gre} split /\//, $1) . ".t" !e;
     $md
 }
 
