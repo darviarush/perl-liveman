@@ -167,12 +167,7 @@ sub transform {
     my $pod = join "", @markdown;
  
     my $module = read_text $pm;
-    $module =~ s!(^__END__[\t ]*\n.*)?\z!
-__END__
-
-=encoding utf-8
-
-$pod!smn;
+    $module =~ s!(^__END__[\t ]*\n.*)?\z!\n__END__\n\n=encoding utf-8\n\n$pod!smn;
     write_text $pm, $module;
 
     $self->{count}++;

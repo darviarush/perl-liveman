@@ -1,32 +1,3 @@
-[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions)
-$pod!smn;
-    write\_text $pm, $module;
-
-    $self->{count}++;
-
-    $self
-}
-
-\# Запустить тесты
-sub tests {
-    my ($self) = @\_;
-
-    if($self->{files}) {
-        local $, = " ";
-        $self->{exitcode} = system "yath test -j4 @{$self->{files}}";
-        return $self;
-    }
-
-    system "cover -delete";
-    $self->{exitcode} = system "yath test -j4 --cover" and return $self;
-    system "cover -report html_basic";
-    system "opera cover_db/coverage.html || xdg-open cover_db/coverage.html" if $self->{open};
-    return $self;
-}
-
-1;
-\_\_END\_\_
-
 # NAME
 
 Liveman - markdown compiller to test and pod.
