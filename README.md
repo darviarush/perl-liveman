@@ -1,208 +1,200 @@
-# VERSION
+[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions)
+$pod!smn;
+    write\_text $pm, $module;
 
-0.01
+    $self->{count}++;
+
+    $self
+}
+
+\# Запустить тесты
+sub tests {
+    my ($self) = @\_;
+
+    if($self->{files}) {
+        local $, = " ";
+        $self->{exitcode} = system "yath test -j4 @{$self->{files}}";
+        return $self;
+    }
+
+    system "cover -delete";
+    $self->{exitcode} = system "yath test -j4 --cover" and return $self;
+    system "cover -report html_basic";
+    system "opera cover_db/coverage.html || xdg-open cover_db/coverage.html" if $self->{open};
+    return $self;
+}
+
+1;
+\_\_END\_\_
 
 # NAME
 
-liveman - "живой мануал". Утилита для преобразования `lib/**.md`-файлов в файлы тестов `t/**.t` и документацию (`POD`), которая помещается в соответствующий модуль `lib/**.pm`
+Liveman - markdown compiller to test and pod.
 
 # SYNOPSIS
 
-```sh
-cd 'каталог проекта'
+    use Liveman;
 
-liveman -o
-```
+    my $liveman = Liveman->new;
+
+    # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+    $liveman->transform("lib/Example.md");
+
+    # compile all lib/**.md files
+    $liveman->transforms;
+
+    # start tests with yath
+    $liveman->tests;
+
+    # limit liveman to these files for operations transforms and tests (without cover)
+    my $liveman = Liveman->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
 
 # DESCRIPTION
 
-Проблема современных проектов в том, что документация оторвана от тестирования.
-Это означает, что примеры в документации могут быть нерабочими, а сама документация — отставать от кода.
+The problem with modern projects is that the documentation is disconnected from testing.
+This means that the examples in the documentation may not work, and the documentation itself may lag behind the code.
 
-Метод одновременного документирования и тестирования решает данную проблему.
+Liveman compile lib/\*\*.md files to t/\*\*.t files
+and it added pod-documentation to section \_\_END\_\_ to lib/\*\*.pm files.
 
-Для документирования выбран формат `markdown`, как наиболее лёгкий для ввода и широкораспространённый. 
-Секции кода `perl`, описанные в нём, транслируются в тест. А докуметация транслируется в `POD` и добавляется в секцию `__END__` модуля perl.
+Use `liveman` command for compile the documentation to the tests in catalog of your project and starts the tests:
 
-Другими словами утилита `liveman` преобразует `lib/**.md`-файлы в файлы тестов (`t/**.t`) и документацию, которая помещается в соответствующий модуль `lib/**.pm`. 
-И сразу же запускает тесты с покрытием.
-
-Покрытие можно посмотреть в файле cover_db/coverage.html.
-
-Примечание: в `.gitignore` лучше сразу же поместить `cover_db/`.
-
+    liveman
+        
 
 # EXAMPLE
 
-Есть файлы:
+Is files:
 
-`lib/ray_test_Mod.pm`:
+lib/ray\_test\_Mod.pm:
 
-```perl
-	package ray_test_Mod;
+        package ray_test_Mod;
 
-	our $A = 10;
-	our $B = [1, 2, 3];
-	our $C = "\$hi";
+        our $A = 10;
+        our $B = [1, 2, 3];
+        our $C = "\$hi";
 
-	1;
-```
+        1;
 
-`lib/ray_test_Mod.md`:
-	
-```perl
-# NAME
+lib/ray\_test\_Mod.md:
 
-ray_test_Mod — тестовый модуль
+        # NAME
 
-# SYNOPSIS
+        ray_test_Mod — тестовый модуль
 
-\```perl
-use ray_test_Mod;
+        # SYNOPSIS
 
-$ray_test_Mod::A # -> 5+5
-$ray_test_Mod::B # --> [1, 2, 3]
+        ```perl
+        use ray_test_Mod;
 
-my $dollar = '$';
-$ray_test_Mod::C # => ${dollar}hi
+        $ray_test_Mod::A # -> 5+5
+        $ray_test_Mod::B # --> [1, 2, 3]
 
-$ray_test_Mod::C # \> $hi
+        my $dollar = '$';
+        $ray_test_Mod::C # => ${dollar}hi
+
+        $ray_test_Mod::C # \> $hi
 
 
-$ray_test_Mod::A # → 5+5
-$ray_test_Mod::B # ⟶ [1, 2, 3]
-$ray_test_Mod::C # ⇒ ${dollar}hi
-$ray_test_Mod::C # ↦ $hi
-\```
-```
+        $ray_test_Mod::A # → 5+5
+        $ray_test_Mod::B # ⟶ [1, 2, 3]
+        $ray_test_Mod::C # ⇒ ${dollar}hi
+        $ray_test_Mod::C # ↦ $hi
 
-Запускаем **liveman**:
+Start `liveman`:
 
-```sh
-liveman -o
-```
-	
-Эта команда модифицирует `pm`-файл:
+        liveman -o
+        
 
-`lib/ray_test_Mod.pm`:
+This command modify `pm`-file:
 
-```perl
-package ray_test_Mod;
+lib/ray\_test\_Mod.pm:
 
-our $A = 10;
-our $B = [1, 2, 3];
-our $C = "\$hi";
+        package ray_test_Mod;
 
-1;
+        our $A = 10;
+        our $B = [1, 2, 3];
+        our $C = "\$hi";
 
-__END__
+        1;
 
-=encoding utf-8
+        __END__
 
-=head1 NAME
+        =encoding utf-8
 
-ray_test_Mod — тестовый модуль
+        =head1 NAME
 
-=head1 SYNOPSIS
+        ray_test_Mod — тестовый модуль
 
-	use ray_test_Mod;
-	
-	$ray_test_Mod::A # -> 5+5
-	$ray_test_Mod::B # --> [1, 2, 3]
-	
-	my $dollar = '$';
-	$ray_test_Mod::C # => ${dollar}hi
-	
-	$ray_test_Mod::C # \> $hi
-	
-	
-	$ray_test_Mod::A # → 5+5
-	$ray_test_Mod::B # ⟶ [1, 2, 3]
-	$ray_test_Mod::C # ⇒ ${dollar}hi
-	$ray_test_Mod::C # ↦ $hi
-```
-	
-И создаст тест:
+        =head1 SYNOPSIS
 
-`t/ray_test_-mod.t`:
+                use ray_test_Mod;
+                
+                $ray_test_Mod::A # -> 5+5
+                $ray_test_Mod::B # --> [1, 2, 3]
+                
+                my $dollar = '$';
+                $ray_test_Mod::C # => ${dollar}hi
+                
+                $ray_test_Mod::C # \> $hi
+                
+                
+                $ray_test_Mod::A # → 5+5
+                $ray_test_Mod::B # ⟶ [1, 2, 3]
+                $ray_test_Mod::C # ⇒ ${dollar}hi
+                $ray_test_Mod::C # ↦ $hi
 
-```perl
-use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
-# 
-# ray_test_Mod — тестовый модуль
-# 
-# # SYNOPSIS
-# 
+        
 
-subtest 'SYNOPSIS' => sub { 	use ray_test_Mod;
-	
-	is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
-	is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
-	
-	my $dollar = '$';
-	is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
-	
-	is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
-	
-	
-	is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
-	is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
-	is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
-	is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
+And this command make test:
 
-# 
-# # DESCRIPTION
-# 
-# It's fine.
-# 
-# # LICENSE
-# 
-# © Yaroslav O. Kosmina
-# 2023
+t/ray\_test\_-mod.t:
 
-	done_testing;
-};
+        use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
+        # 
+        # ray_test_Mod — тестовый модуль
+        # 
+        # # SYNOPSIS
+        # 
 
-done_testing;
-```
+        subtest 'SYNOPSIS' => sub {     use ray_test_Mod;
+                
+                is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
+                is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
+                
+                my $dollar = '$';
+                is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
+                
+                is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
+                
+                
+                is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
+                is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
+                is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
+                is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
 
-А так же запустит его с покрытием:
+        # 
+        # # DESCRIPTION
+        # 
+        # It's fine.
+        # 
+        # # LICENSE
+        # 
+        # © Yaroslav O. Kosmina
+        # 2023
 
-```
-Deleting database /home/dart/__/@lib/perl-liveman/cover_db
-( PASSED )  job  1    t/ray_test_-mod.t
+                done_testing;
+        };
 
-                                Yath Result Summary
------------------------------------------------------------------------------------
-     File Count: 1
-Assertion Count: 8
-      Wall Time: 2.88 seconds
-       CPU Time: 5.29 seconds (usr: 0.26s | sys: 0.04s | cusr: 4.08s | csys: 0.91s)
-      CPU Usage: 183%
-    -->  Result: PASSED  <--
+        done_testing;
 
-Reading database from /home/dart/__/@lib/perl-liveman/cover_db
+Run it with coverage.
 
-
--------------------- ------ ------ ------ ------ ------ ------
-File                  stmt   bran   cond    sub   time  total
--------------------- ------ ------ ------ ------ ------ ------
-lib/ray_test_Mod.pm   95.9   79.5   85.7  100.0  100.0   91.9
-Total                 95.9   79.5   85.7  100.0  100.0   91.9
--------------------- ------ ------ ------ ------ ------ ------
-
-
-HTML output written to /tmp/ray-test/cover_db/coverage.html
-```
-
-Опция `-o` откроет покрытие в браузере (т.е. файл покрытия: cover_db/coverage.html).
+Option `-o` open coverage in browser (coverage file: cover\_db/coverage.html).
 
 # LICENSE
 
-Copyright (C) Yaroslav O. Kosmina.
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+⚖ **GPLv3**
 
 # AUTHOR
 

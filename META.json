@@ -1,18 +1,18 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "markdown compiller to test and pod.",
    "author" : [
       "Yaroslav O. Kosmina <darviarush@mail.ru>"
    ],
    "dynamic_config" : 0,
    "generated_by" : "Minilla/v3.1.19, CPAN::Meta::Converter version 2.150010",
    "license" : [
-      "perl_5"
+      "unknown"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : 2
    },
-   "name" : "Aion-Miu",
+   "name" : "Liveman",
    "no_index" : {
       "directory" : [
          "t",
@@ -42,6 +42,10 @@
       },
       "runtime" : {
          "requires" : {
+            "App::Yath" : "1.000152",
+            "Devel::Cover" : "0",
+            "Template" : "3.101",
+            "Term::ANSIColor" : "5.01",
             "perl" : "5.008001"
          }
       },
@@ -52,6 +56,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/darviarush/perl-liveman/issues"
+      },
+      "homepage" : "https://github.com/darviarush/perl-liveman",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/darviarush/perl-liveman.git",
+         "web" : "https://github.com/darviarush/perl-liveman"
+      }
+   },
    "version" : "0.01",
    "x_serialization_backend" : "JSON::PP version 4.07",
    "x_static_install" : 1

@@ -366,10 +366,7 @@ Option C<-o> open coverage in browser (coverage file: cover_db/coverage.html).
 
 =head1 LICENSE
 
-Copyright (C) Yaroslav O. Kosmina.
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+⚖ B<GPLv3>
 
 =head1 AUTHOR
 
