@@ -33,11 +33,6 @@ sub transforms {
 
     $self->{count} = 0;
 
-    if($self->{compile_force}) {
-        $self->transform($_) for @$mds;
-        return $self;
-    }
-
     for my $md (@$mds) {
         my $test = $self->test_path($md);
         my $mdmtime = (stat $md)[9];
@@ -96,8 +91,8 @@ sub transform {
     my @pod; my @test; my $title = 'Start'; my $close_subtest; my $use_title = 1;
 
     my $inset = "```";
-    my @text = split /^(${inset}\w*[ \t]*(?:\n|\z))/mo, $markdown;
-use DDP; p @text;
+    my @text = split /^(${inset}\w*[ \t])$/mo, $markdown;
+
     for(my $i=0; $i<@text; $i+=4) {
         my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
@@ -112,13 +107,11 @@ use DDP; p @text;
         push @pod, $code =~ s/^/\t/gmr;
 
         my ($infile, $is) = $mark =~ /^(?:File|Файл)[ \t]+(.*?)([\t ]+(?:is|является))?:[\t ]*\n\z/m;
-        if($infile) {
-            if($is) { # тестируем, что текст совпадает
-                push @test, "{ open my \$__f__, '<:utf8', my \$s = '${\_q_esc($infile)}' or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; is_deeply \$n, '${\_q_esc($code)}', \"File \$s\"; } ";
-            }
-            else { # записываем тект в файл
-                push @test, "{ open my \$__f__, '>:utf8', my \$s = main::_mkpath_('${\_q_esc($infile)}') or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($code)}'; close \$__f__ } ";
-            }
+        if($infile && $is) {
+            push @test, "{ open my \$__f__, '<:utf8', my \$s = '${\_q_esc($infile)}' or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; is_deeply \$n, '${\_q_esc($code)}', \"File \$s\"; } ";
+        }
+        elsif($infile) {
+            push @test, "{ open my \$__f__, '>:utf8', my \$s = '${\_q_esc($infile)}' or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($code)}'; close \$__f__ } ";
         } else {
 
             if($use_title ne $title) {
@@ -137,11 +130,7 @@ use DDP; p @text;
     push @test, "\ndone_testing;\n";
 
     _mkpath($test);
-    my $mkpath = q{sub _mkpath_ { my ($p) = @_; mkdir $`, 0755 while $p =~ m!/!g; $p }};
-    my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
-    my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*([^\/]+)$/$1/rs) . "-" . join "", map $symbol[rand(scalar @symbol)], 1..6;
-    my $chdir = "chdir _mkpath_('${\ _q_esc($test_path)}');";
-    write_text $test, join "", "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; $mkpath $chdir ", @test;
+    write_text $test, join "", "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; ", @test;
 
     # Создаём модуль, если его нет
     my $pm = $md =~ s/\.md$/.pm/r;
@@ -181,12 +170,6 @@ sub tests {
 }
 
 1;
-
-
-
-
-
-
 __END__
 
 =encoding utf-8
@@ -197,176 +180,169 @@ Liveman - markdown compiller to test and pod.
 
 =head1 SYNOPSIS
 
-File lib/Example.md:
-	Twice two:
-	\```perl
-	2*2  # -> 2+2
-	\```
-Test:
-	use Liveman;
-	
-	my $liveman = Liveman->new;
-	
-	# compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
-	$liveman->transform("lib/Example.md");
-	
-	# compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
-	$liveman->transforms;
-	
-	# start tests with yath
-	$liveman->tests;
-	
-	# limit liveman to these files for operations transforms and tests (without cover)
-	my $liveman2 = Liveman->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
-=head1 DESCRIPION
+    use Liveman;
+
+    my $liveman = Liveman->new;
+
+    # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+    $liveman->transform("lib/Example.md");
+
+    # compile all lib/**.md files
+    $liveman->transforms;
+
+    # start tests with yath
+    $liveman->tests;
+
+    # limit liveman to these files for operations transforms and tests (without cover)
+    my $liveman = Liveman->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
+
+=head1 DESCRIPTION
 
 The problem with modern projects is that the documentation is disconnected from testing.
 This means that the examples in the documentation may not work, and the documentation itself may lag behind the code.
 
-Liveman compile C<lib/**>.md files to C<t/**.t> files
-and it added pod-documentation to section C<__END__> to C<lib/**.pm> files.
+Liveman compile lib/**.md files to t/**.t files
+and it added pod-documentation to section __END__ to lib/**.pm files.
 
 Use C<liveman> command for compile the documentation to the tests in catalog of your project and starts the tests:
 
- liveman
-
+    liveman
+	
 =head1 EXAMPLE
 
 Is files:
 
-File lib/ray_test_Mod.pm:
+lib/ray_test_Mod.pm:
+
 	package ray_test_Mod;
-	
+
 	our $A = 10;
 	our $B = [1, 2, 3];
 	our $C = "\$hi";
-	
+
 	1;
-File lib/ray_test_Mod.md:
+
+lib/ray_test_Mod.md:
+	
 	# NAME
-	
+
 	ray_test_Mod — тестовый модуль
-	
+
 	# SYNOPSIS
+
+	```perl
+	use ray_test_Mod;
+
+	$ray_test_Mod::A # -> 5+5
+	$ray_test_Mod::B # --> [1, 2, 3]
+
+	my $dollar = '$';
+	$ray_test_Mod::C # => ${dollar}hi
+
+	$ray_test_Mod::C # \> $hi
+
+
+	$ray_test_Mod::A # → 5+5
+	$ray_test_Mod::B # ⟶ [1, 2, 3]
+	$ray_test_Mod::C # ⇒ ${dollar}hi
+	$ray_test_Mod::C # ↦ $hi
+
+Start C<liveman>:
+
+	liveman -o
 	
-use ray_test_Mod;
+This command modify C<pm>-file:
 
-$ray_test_Mod::A # -> 5+5
-$ray_test_Mod::B # --> [1, 2, 3]
+lib/ray_test_Mod.pm:
 
-my $dollar = '$';
-$ray_test_Mod::C # => ${dollar}hi
+	package ray_test_Mod;
 
-$ray_test_Mod::C # > $hi
+	our $A = 10;
+	our $B = [1, 2, 3];
+	our $C = "\$hi";
 
-$ray_test_Mod::A # → 5+5
-$ray_test_Mod::B # ⟶ [1, 2, 3]
-$ray_test_Mod::C # ⇒ ${dollar}hi
-$ray_test_Mod::C # ↦ $hi
+	1;
+
+	__END__
+
+	=encoding utf-8
+
+	=head1 NAME
+
+	ray_test_Mod — тестовый модуль
+
+	=head1 SYNOPSIS
+
+		use ray_test_Mod;
+		
+		$ray_test_Mod::A # -> 5+5
+		$ray_test_Mod::B # --> [1, 2, 3]
+		
+		my $dollar = '$';
+		$ray_test_Mod::C # => ${dollar}hi
+		
+		$ray_test_Mod::C # \> $hi
+		
+		
+		$ray_test_Mod::A # → 5+5
+		$ray_test_Mod::B # ⟶ [1, 2, 3]
+		$ray_test_Mod::C # ⇒ ${dollar}hi
+		$ray_test_Mod::C # ↦ $hi
+
 	
-	Start command `liveman` or equvivalent on perl:
-use Liveman;
-Liveman->new->translates->tests;
-	
-	This command modify `pm`-file:
-	
-	File lib/ray_test_Mod.pm is:
-package ray_test_Mod;
+And this command make test:
 
-our $A = 10;
-our $B = [1, 2, 3];
-our $C = "\$hi";
+t/ray_test_-mod.t:
 
-1;
+	use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
+	# 
+	# ray_test_Mod — тестовый модуль
+	# 
+	# # SYNOPSIS
+	# 
 
-B<END>
+	subtest 'SYNOPSIS' => sub { 	use ray_test_Mod;
+		
+		is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
+		is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
+		
+		my $dollar = '$';
+		is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
+		
+		is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
+		
+		
+		is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
+		is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
+		is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
+		is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
 
-=encoding utf-8
+	# 
+	# # DESCRIPTION
+	# 
+	# It's fine.
+	# 
+	# # LICENSE
+	# 
+	# © Yaroslav O. Kosmina
+	# 2023
 
-=head1 NAME
+		done_testing;
+	};
 
-ray_test_Mod — тестовый модуль
+	done_testing;
 
-=head1 SYNOPSIS
+Run it with coverage.
 
- use ray_test_Mod;
- 
- $ray_test_Mod::A # -> 5+5
- $ray_test_Mod::B # --> [1, 2, 3]
- 
- my $dollar = '$';
- $ray_test_Mod::C # => ${dollar}hi
- 
- $ray_test_Mod::C # \> $hi
- 
- 
- $ray_test_Mod::A # → 5+5
- $ray_test_Mod::B # ⟶ [1, 2, 3]
- $ray_test_Mod::C # ⇒ ${dollar}hi
- $ray_test_Mod::C # ↦ $hi
-	
-	And this command make test:
-	
-	File t/ray_test_-mod.t is:
-use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
-=head1  
+Option C<-o> open coverage in browser (coverage file: cover_db/coverage.html).
 
-=head1 ray_test_Mod — тестовый модуль
+=head1 LICENSE
 
-=head1  
+⚖ B<GPLv3>
 
-=head1 # SYNOPSIS
+=head1 AUTHOR
 
-=head1  
+Yaroslav O. Kosmina E<lt>darviarush@mail.ruE<gt>
 
-subtest 'SYNOPSIS' => sub {     use ray_test_Mod;
+=cut
 
- is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
- is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
- 
- my $dollar = '$';
- is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
- 
- is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
- 
- 
- is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
- is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
- is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
- is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
-
-=head1  
-
-=head1 # DESCRIPTION
-
-=head1  
-
-=head1 It's fine.
-
-=head1  
-
-=head1 # LICENSE
-
-=head1  
-
-=head1 © Yaroslav O. Kosmina
-
-=head1 2023
-
- done_testing;
-
-};
-
-done_testing;
-	
-	Run it with coverage.
-	
-	Option `-o` open coverage in browser (coverage file: cover_db/coverage.html).
-	
-	# LICENSE
-	
-	⚖ **GPLv3**
-	
-	# AUTHOR
-	
-	Yaroslav O. Kosmina E<lt>darviarush@mail.ruE<gt>

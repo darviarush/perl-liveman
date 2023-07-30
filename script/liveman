@@ -17,6 +17,8 @@ my $parse_options_ok = GetOptions(
     'man'    => \( my $man  = 0 ),
 
     'o|open' => \( my $open = 0 ),
+    'c|compile' => \( my $compile_only = 0 ),
+    'f|force' => \( my $compile_force = 0 ),
 );
 
 if ( !$parse_options_ok ) {
@@ -32,7 +34,14 @@ elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
 }
 else {
-    exit Liveman->new(files => \@ARGV, open => $open)->transforms->tests;
+    my $liveman = Liveman->new(
+        files => \@ARGV,
+        open => $open,
+        compile_force => $compile_force,
+    );
+    $liveman->transforms;
+    exit 0 if $compile_only;
+    exit $liveman->tests;
 }
 
 __END__
@@ -49,7 +58,7 @@ Version 0.01
 
 =head1 SYNOPSIS
 
-    liveman [-h] [--man] [-o] [<files> ...]
+    liveman [-h] [--man] [-o][-c][-f] [<files> ...]
 
 =head1 DESCRIPTION
 
@@ -84,6 +93,14 @@ Version 0.01
 =item B<-o>, B<--open>
 
 Открыть в браузере покрытие.
+
+=item B<-c>, B<--compile>
+
+Только компилировать, тесты не запускаем.
+
+=item B<-f>, B<--force>
+
+Трансформировать файлы lib/**.md даже если они не изменились.
 
 =back
 
