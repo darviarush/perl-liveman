@@ -26,7 +26,7 @@ sub test_path {
     $md
 }
 
-# Трансформирует md-файлыread_text
+# Трансформирует md-файлы
 sub transforms {
     my ($self) = @_;
     my $mds = $self->{files} // [split /\n/, `find lib -name '*.md'`];
@@ -184,8 +184,9 @@ sub tests {
     my ($self) = @_;
 
     if($self->{files}) {
+        my @tests = map $self->test_path($_), @{$self->{files}};
         local $, = " ";
-        $self->{exit_code} = system "yath test -j4 @{$self->{files}}";
+        $self->{exit_code} = system "yath test -j4 @tests";
         return $self;
     }
 
