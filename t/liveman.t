@@ -1,4 +1,4 @@
-use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; sub _mkpath_ { my ($p) = @_; mkdir $`, 0755 while $p =~ m!/!g; $p } { my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!" } # # NAME
+use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } { my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!" } # # NAME
 # 
 # Liveman - markdown compiller to test and pod.
 # 

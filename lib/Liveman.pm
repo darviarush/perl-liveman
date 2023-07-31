@@ -152,7 +152,7 @@ sub transform {
     push @test, "\ndone_testing;\n";
 
     _mkpath($test);
-    my $mkpath = q{sub _mkpath_ { my ($p) = @_; mkdir $`, 0755 or die "mkdir $`: $!" while $p =~ m!/!g; $p }};
+    my $mkpath = q{sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p }};
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
@@ -197,6 +197,11 @@ sub tests {
 }
 
 1;
+
+
+
+
+
 
 
 
