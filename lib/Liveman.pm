@@ -126,10 +126,11 @@ sub transform {
         if($infile) {
             my $real_code = $code =~ s/^\\(```\w*[\t ]*$)/$1/mgro;
             if($is) { # тестируем, что текст совпадает
-                push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
+                push @test, "\n{ my \$s = '${\_q_esc($infile)}'; open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
             }
             else { # записываем тект в файл
-                push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '>:utf8', \$s or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($real_code)}'; close \$__f__ }\n";
+                #push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '>:utf8', \$s or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($real_code)}'; close \$__f__ }\n";
+                push @test, "#\@> $infile\n", $real_code =~ s/^/#>> /rgm, "#\@< EOF\n";
             }
         } elsif($sec1 =~ /^```(?:perl)?[ \t]*$/) {
 
@@ -153,10 +154,11 @@ sub transform {
 
     _mkpath($test);
     my $mkpath = q{sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p }};
+    my $write_files = q{open my $__f__, "<:utf8", $t or die "Read $t: $!"; $s = join "", <$__f__>; close $__f__; while($s =~ /^#\\@> (.*)\n((#>> .*\n)*)#\\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; }};
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
-    my $chdir = "BEGIN { my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\" }";
+    my $chdir = "BEGIN { my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\"; $write_files }";
     write_text $test, join "", "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; $mkpath $chdir ", @test;
 
     # Создаём модуль, если его нет
@@ -183,21 +185,39 @@ sub transform {
 sub tests {
     my ($self) = @_;
 
+    my $cover = "/usr/bin/site_perl/cover";
+    $cover = 'cover' if !-e $cover;
+
+    my $yath = "/usr/bin/site_perl/yath";
+    $yath = 'yath' if !-e $yath;
+
+
     if($self->{files}) {
         my @tests = map $self->test_path($_), @{$self->{files}};
         local $, = " ";
-        $self->{exit_code} = system "yath test -j4 @tests";
+        $self->{exit_code} = system "$yath test -j4 @tests";
         return $self;
     }
 
-    system "cover -delete";
-    $self->{exit_code} = system "yath test -j4 --cover" and return $self;
-    system "cover -report html_basic";
+    system "$cover -delete";
+    $self->{exit_code} = system "$yath test -j4 --cover" and return $self;
+    system "$cover -report html_basic";
     system "opera cover_db/coverage.html || xdg-open cover_db/coverage.html" if $self->{open};
     return $self;
 }
 
 1;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
