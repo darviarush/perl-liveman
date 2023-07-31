@@ -41,7 +41,7 @@ else {
     );
     $liveman->transforms;
     exit 0 if $compile_only;
-    exit $liveman->tests;
+    exit $liveman->tests->{exit_code};
 }
 
 __END__

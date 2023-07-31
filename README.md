@@ -4,164 +4,215 @@ Liveman - markdown compiller to test and pod.
 
 # SYNOPSIS
 
-    use Liveman;
+File lib/Example.md:
+```markdown
+Twice two:
+\```perl
+2*2  # -> 2+2
+\```
+```
 
-    my $liveman = Liveman->new;
+Test:
+```perl
+use Liveman;
 
-    # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
-    $liveman->transform("lib/Example.md");
+my $liveman = Liveman->new;
 
-    # compile all lib/**.md files
-    $liveman->transforms;
+# compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+$liveman->transform("lib/Example.md");
 
-    # start tests with yath
-    $liveman->tests;
+$liveman->{count}   # => 1
+-f "t/example.t"    # => 1
+-f "lib/Example.pm" # => 1
 
-    # limit liveman to these files for operations transforms and tests (without cover)
-    my $liveman = Liveman->new(files => ["lib/Example1.md", "lib/Examples/Example2.md"]);
+# compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
+$liveman->transforms;
+$liveman->{count}   # => 0
 
-# DESCRIPTION
+# compile without check modification time
+Liveman->new(compile_force => 1)->transforms->{count} # => 1
+
+# start tests with yath
+my $yath_return_code = $liveman->tests->{exit_code};
+
+$yath_return_code           # => 0
+-f "cover_db/coverage.html" # => 1
+
+# limit liveman to these files for operations transforms and tests (without cover)
+my $liveman2 = Liveman->new(files => [], force_compile => 1);
+```
+
+# DESCRIPION
 
 The problem with modern projects is that the documentation is disconnected from testing.
 This means that the examples in the documentation may not work, and the documentation itself may lag behind the code.
 
-Liveman compile lib/\*\*.md files to t/\*\*.t files
-and it added pod-documentation to section \_\_END\_\_ to lib/\*\*.pm files.
+Liveman compile `lib/**`.md files to `t/**.t` files
+and it added pod-documentation to section `__END__` to `lib/**.pm` files.
 
 Use `liveman` command for compile the documentation to the tests in catalog of your project and starts the tests:
 
     liveman
-        
-
-# EXAMPLE
-
-Is files:
-
-lib/ray\_test\_Mod.pm:
-
-        package ray_test_Mod;
-
-        our $A = 10;
-        our $B = [1, 2, 3];
-        our $C = "\$hi";
-
-        1;
-
-lib/ray\_test\_Mod.md:
-
-        # NAME
-
-        ray_test_Mod — тестовый модуль
-
-        # SYNOPSIS
-
-        ```perl
-        use ray_test_Mod;
-
-        $ray_test_Mod::A # -> 5+5
-        $ray_test_Mod::B # --> [1, 2, 3]
-
-        my $dollar = '$';
-        $ray_test_Mod::C # => ${dollar}hi
-
-        $ray_test_Mod::C # \> $hi
-
-
-        $ray_test_Mod::A # → 5+5
-        $ray_test_Mod::B # ⟶ [1, 2, 3]
-        $ray_test_Mod::C # ⇒ ${dollar}hi
-        $ray_test_Mod::C # ↦ $hi
-
-Start `liveman`:
-
-        liveman -o
-        
-
-This command modify `pm`-file:
-
-lib/ray\_test\_Mod.pm:
-
-        package ray_test_Mod;
-
-        our $A = 10;
-        our $B = [1, 2, 3];
-        our $C = "\$hi";
-
-        1;
-
-        __END__
-
-        =encoding utf-8
-
-        =head1 NAME
-
-        ray_test_Mod — тестовый модуль
-
-        =head1 SYNOPSIS
-
-                use ray_test_Mod;
-                
-                $ray_test_Mod::A # -> 5+5
-                $ray_test_Mod::B # --> [1, 2, 3]
-                
-                my $dollar = '$';
-                $ray_test_Mod::C # => ${dollar}hi
-                
-                $ray_test_Mod::C # \> $hi
-                
-                
-                $ray_test_Mod::A # → 5+5
-                $ray_test_Mod::B # ⟶ [1, 2, 3]
-                $ray_test_Mod::C # ⇒ ${dollar}hi
-                $ray_test_Mod::C # ↦ $hi
-
-        
-
-And this command make test:
-
-t/ray\_test\_-mod.t:
-
-        use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; # # NAME
-        # 
-        # ray_test_Mod — тестовый модуль
-        # 
-        # # SYNOPSIS
-        # 
-
-        subtest 'SYNOPSIS' => sub {     use ray_test_Mod;
-                
-                is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # -> 5+5';
-                is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # --> [1, 2, 3]';
-                
-                my $dollar = '$';
-                is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # => ${dollar}hi';
-                
-                is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # \> $hi';
-                
-                
-                is scalar do {$ray_test_Mod::A}, scalar do{5+5}, '$ray_test_Mod::A # → 5+5';
-                is_deeply scalar do {$ray_test_Mod::B}, scalar do {[1, 2, 3]}, '$ray_test_Mod::B # ⟶ [1, 2, 3]';
-                is scalar do {$ray_test_Mod::C}, "${dollar}hi", '$ray_test_Mod::C # ⇒ ${dollar}hi';
-                is scalar do {$ray_test_Mod::C}, '$hi', '$ray_test_Mod::C # ↦ $hi';
-
-        # 
-        # # DESCRIPTION
-        # 
-        # It's fine.
-        # 
-        # # LICENSE
-        # 
-        # © Yaroslav O. Kosmina
-        # 2023
-
-                done_testing;
-        };
-
-        done_testing;
 
 Run it with coverage.
 
-Option `-o` open coverage in browser (coverage file: cover\_db/coverage.html).
+Option `-o` open coverage in browser (coverage file: `cover_db/coverage.html`).
+
+## TYPES OF TESTS
+
+Section codes `noname` or `perl` writes as code to `t/**.t`-file. And comment with arrow translates on test from module `Test::More`.
+
+The test name set as the code-line.
+
+### `is`
+
+Compare two expressions for equivalence:
+
+```perl
+"hi!" # -> "hi" . "!"
+"hi!" # → "hi" . "!"
+```
+
+### `is_deeply`
+
+Compare two expressions for structures:
+
+```perl
+"hi!" # --> "hi" . "!"
+"hi!" # ⟶ "hi" . "!"
+```
+
+### `is` with extrapolate-string
+
+Compare expression with extrapolate-string:
+
+```perl
+my $exclamation = "!";
+"hi!2" # => hi${exclamation}2
+"hi!2" # ⇒ hi${exclamation}2
+```
+
+### `is` with nonextrapolate-string
+
+Compare expression with nonextrapolate-string:
+
+```perl
+'hi${exclamation}3' # \> hi${exclamation}3
+'hi${exclamation}3' # ↦ hi${exclamation}3
+```
+
+### `like`
+
+It check a regular expression included in the expression:
+
+```perl
+'abbc' # ~> b+
+'abc'  # ↬ b+
+```
+
+### `unlike`
+
+It check a regular expression excluded in the expression:
+
+```perl
+'ac' # <~ b+
+'ac' # ↫ b+
+```
+
+## EMBEDDING FILES
+
+Each test is executed in a temporary directory, which is erased and created when the test is run.
+
+This directory format is /tmp/.liveman/*project*/*path-to-test*/.
+
+Code section in md-file prefixed line **File `path`:** write to file in rintime testing.
+
+Code section in md-file prefixed line **File `path` is:** will be compared with the file by the method `Test::More::is`.
+
+File experiment/test.txt:
+```text
+hi!
+```
+
+File experiment/test.txt is:
+```text
+hi!
+```
+
+**Attention!** An empty string between the prefix and the code is not allowed!
+
+Prefixes maybe on russan: `Файл path:` and `Файл path является:`.
+
+## METHODS
+
+### new(files=>[...], open => 1, force_compile => 1)
+
+Constructor. Has arguments:
+
+1. `files` (array_ref) — list of md-files for methods `transforms` and `tests`.
+1. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
+1. `force_compile` (boolean) — do not check the md-files modification time.
+
+### test_path($md_path)
+
+Get the path to the `t/**.t`-file from the path to the `lib/**.md`-file:
+
+```perl
+Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
+```
+
+### transform($md_path, [$test_path])
+
+Compile `lib/**.md`-file to `t/**.t`-file.
+
+And method `transform` replace the **pod**-documentation in section `__END__` in `lib/**.pm`-file. And create `lib/**.pm`-file if it not exists.
+
+File lib/Example.pm is:
+```perl
+package Example;
+
+1;
+
+__END__
+
+=encoding utf-8
+
+Twice two:
+
+	2*2  # -> 2+2
+
+```
+
+### transforms()
+
+Compile `lib/**.md`-files to `t/**.t`-files.
+
+All if `$self->{files}` is empty, or `$self->{files}`.
+
+### tests()
+
+Tests `t/**.t`-files.
+
+All if `$self->{files}` is empty, or `$self->{files}` only.
+
+# INSTALL
+
+Add to **cpanfile** in your project:
+
+```cpanfile
+on 'test' => sub {
+	requires 'Liveman', 
+		git => 'https://github.com/darviarush/perl-liveman.git',
+		ref => 'master',
+	;
+};
+```
+
+And run command:
+
+```sh
+$ sudo cpm install -gvv
+```
 
 # LICENSE
 
@@ -169,4 +220,4 @@ Option `-o` open coverage in browser (coverage file: cover\_db/coverage.html).
 
 # AUTHOR
 
-Yaroslav O. Kosmina <darviarush@mail.ru>
+Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
