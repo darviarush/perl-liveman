@@ -156,7 +156,7 @@ sub transform {
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
-    my $chdir = "{ my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: $!\" }";
+    my $chdir = "{ my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\" }";
     write_text $test, join "", "use strict; use warnings; use utf8; use open qw/:std :utf8/; use Test::More 0.98; $mkpath $chdir ", @test;
 
     # Создаём модуль, если его нет
@@ -197,6 +197,7 @@ sub tests {
 }
 
 1;
+
 
 
 
