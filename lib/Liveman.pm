@@ -169,9 +169,9 @@ sub transform {
     }
 
     # Записываем в модуль
-    my $pod = join "", @pod; 
+    my $pod = join "", @pod;
     my $module = read_text $pm;
-    $module =~ s!(^__END__[\t ]*\n.*)?\z!\n__END__\n\n=encoding utf-8\n\n$pod!smn;
+    $module =~ s!(\s*\n__END__[\t ]*\n.*)?$!\n\n__END__\n\n=encoding utf-8\n\n$pod!sn;
     write_text $pm, $module;
 
     $self->{count}++;
@@ -207,80 +207,6 @@ sub tests {
 }
 
 1;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 __END__
 
