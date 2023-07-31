@@ -5,6 +5,7 @@ on 'test' => sub {
 };
 
 requires 'App::Yath', '1.000152';
+requires 'Carp::Always::Color', '0.08';
 requires 'Devel::Cover', '1.40';
 requires 'File::Slurper', '0.013';
 requires 'Markdown::To::POD', '0.06';
