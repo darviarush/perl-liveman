@@ -4,6 +4,7 @@ on 'test' => sub {
     requires 'Test::More', '0.98';
 };
 
+requires 'common::sense', '3.75';
 requires 'App::Yath', '1.000152';
 requires 'Carp::Always::Color', '0.08';
 requires 'Devel::Cover', '1.40';
