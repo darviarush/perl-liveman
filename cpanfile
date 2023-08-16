@@ -6,6 +6,7 @@ on 'test' => sub {
 
 requires 'common::sense', '3.75';
 requires 'App::Yath', '1.000152';
+requires 'Data::UUID', '1.226';
 requires 'Carp::Always::Color', '0.08';
 requires 'Devel::Cover', '1.40';
 requires 'File::Slurper', '0.013';
