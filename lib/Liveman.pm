@@ -2,7 +2,7 @@ package Liveman;
 use 5.008001;
 use common::sense;
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -157,7 +157,7 @@ sub transform {
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
     my $chdir = "BEGIN { my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\"; $write_files }";
-    write_text $test, join "", "use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Aion::Carp; $mkpath $chdir ", @test;
+    write_text $test, join "", "use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; $mkpath $chdir ", @test;
 
     # Создаём модуль, если его нет
     my $pm = $md =~ s/\.md$/.pm/r;
