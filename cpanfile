@@ -13,3 +13,4 @@ requires 'File::Slurper', '0.013';
 requires 'Markdown::To::POD', '0.06';
 requires 'Template', '3.101';
 requires 'Term::ANSIColor', '5.01';
+requires 'Test::More', '0.98';
