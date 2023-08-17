@@ -2,7 +2,7 @@ package Liveman;
 use 5.008001;
 use common::sense;
 
-our $VERSION = "0.04";
+our $VERSION = "0.05";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -33,15 +33,36 @@ sub transforms {
 
     if($self->{compile_force}) {
         $self->transform($_) for @$mds;
-        return $self;
+    } else {
+        for my $md (@$mds) {
+            my $test = $self->test_path($md);
+            my $mdmtime = (stat $md)[9];
+            die "Нет файла $md" if !$mdmtime;
+            $self->transform($md, $test) if !-e $test || -e $test && $mdmtime > (stat $test)[9];
+        }
     }
 
-    for my $md (@$mds) {
-        my $test = $self->test_path($md);
-        my $mdmtime = (stat $md)[9];
-        die "Нет файла $md" if !$mdmtime;
-        $self->transform($md, $test) if !-e $test || -e $test && $mdmtime > (stat $test)[9];
+    if(-f "minil.toml" && -r "minil.toml") {
+        my $is_copy; my $name;
+        eval {
+            my $minil = read_text("minil.toml");
+            ($name) = $minil =~ /^name = "([\w:-]+)"/m;
+            $name =~ s!(-|::)!/!g;
+            $name = "lib/$name.md";
+            if(-f $name && -r $name) {
+                if(!-e "README.md" || -e "README.md"
+                    && (stat $name)[9] > (stat "README.md")[9]) {
+                    write_text "README.md", read_text $name;
+                    $is_copy = 1;
+                }
+            }
+        };
+        if($@) {warn $@}
+        elsif($is_copy) {
+            print "📘 $name ", colored("↦", "white"), " README.md ", colored("...", "white"), " ", colored("ok", "bright_green"), "\n";
+        }
     }
+
     $self
 }
 
@@ -220,13 +241,13 @@ Liveman - markdown compiller to test and pod.
 
 =head1 VERSION
 
-0.04
+0.05
 
 =head1 SYNOPSIS
 
 File lib/Example.md:
 
-	Twice two:
+	Twice two.
 	\```perl
 	2*2  # -> 2+2
 	\```
@@ -275,6 +296,10 @@ Use C<liveman> command for compile the documentation to the tests in catalog of 
 Run it with coverage.
 
 Option C<-o> open coverage in browser (coverage file: C<cover_db/coverage.html>).
+
+Liveman replace C<our $VERSION = "...";> in C<lib/**.pm> from C<lib/**.md> if it exists in pm and in md.
+
+If exists file B<minil.toml>, then Liveman read C<name> from it, and copy file with this name and extension C<.md> to README.md.
 
 =head2 TYPES OF TESTS
 

@@ -4,13 +4,13 @@ use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Alway
 # 
 # # VERSION
 # 
-# 0.04
+# 0.05
 # 
 # # SYNOPSIS
 # 
 # File lib/Example.md:
 #@> lib/Example.md
-#>> Twice two:
+#>> Twice two.
 #>> ```perl
 #>> 2*2  # -> 2+2
 #>> ```
@@ -61,6 +61,10 @@ my $liveman2 = Liveman->new(files => [], force_compile => 1);
 # Run it with coverage.
 # 
 # Option `-o` open coverage in browser (coverage file: `cover_db/coverage.html`).
+# 
+# Liveman replace `our $VERSION = "...";` in `lib/**.pm` from `lib/**.md` if it exists in pm and in md.
+# 
+# If exists file **minil.toml**, then Liveman read `name` from it, and copy file with this name and extension `.md` to README.md.
 # 
 # ## TYPES OF TESTS
 # 
