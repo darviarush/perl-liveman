@@ -2,7 +2,7 @@ package Liveman;
 use 5.008001;
 use common::sense;
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -166,10 +166,14 @@ sub transform {
         write_text $pm, "package $pkg;\n\n1;";
     }
 
-    # Записываем в модуль
+    # Трансформируем модуль (pod и версия):
     my $pod = join "", @pod;
     my $module = read_text $pm;
     $module =~ s!(\s*\n__END__[\t ]*\n.*)?$!\n\n__END__\n\n=encoding utf-8\n\n$pod!sn;
+
+    # Меняем версию:
+    my ($version) = $markdown =~ /#[ \t]+VERSION\s+([\d\.]+)\s/;
+    $module =~ s!^(our \$VERSION = ")[^"]*(";)!$1$version$2!m if defined $version;
     write_text $pm, $module;
 
     $self->{count}++;
@@ -213,6 +217,10 @@ __END__
 =head1 NAME
 
 Liveman - markdown compiller to test and pod.
+
+=head1 VERSION
+
+0.04
 
 =head1 SYNOPSIS
 

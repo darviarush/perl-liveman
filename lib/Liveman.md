@@ -4,13 +4,13 @@ Liveman - markdown compiller to test and pod.
 
 # VERSION
 
-0.03
+0.04
 
 # SYNOPSIS
 
 File lib/Example.md:
 ```markdown
-Twice two:
+Twice two.
 \```perl
 2*2  # -> 2+2
 \```
@@ -61,6 +61,8 @@ Use `liveman` command for compile the documentation to the tests in catalog of y
 Run it with coverage.
 
 Option `-o` open coverage in browser (coverage file: `cover_db/coverage.html`).
+
+Liveman replace `our $VERSION = "...";` in `lib/**.pm` from `lib/**.md` if it exists in pm and in md.
 
 ## TYPES OF TESTS
 
