@@ -2,7 +2,7 @@ package Liveman;
 use 5.008001;
 use common::sense;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
