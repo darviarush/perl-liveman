@@ -2,6 +2,10 @@
 
 Liveman - markdown compiller to test and pod.
 
+# VERSION
+
+0.02
+
 # SYNOPSIS
 
 File lib/Example.md:
