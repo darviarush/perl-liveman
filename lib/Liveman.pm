@@ -102,12 +102,12 @@ sub _to_testing {
     my $q = _q_esc($line =~ s!\s*$!!r);
     my $code = _trim($x{code});
 
-    if(exists $x{is_deeply}) { "is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
-    elsif(exists $x{is})   { "is scalar do {$code}, scalar do{$expected}, '$q';\n" }
-    elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "is scalar do {$code}, \"$ex\", '$q';\n" }
-    elsif(exists $x{qis})  { my $ex = _q_esc($expected);  "is scalar do {$code}, '$ex', '$q';\n" }
-    elsif(exists $x{like})  { my $ex = _qr_esc($expected);  "like scalar do {$code}, qr!$ex!, '$q';\n" }
-    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected);  "unlike scalar do {$code}, qr!$ex!, '$q';\n" }
+    if(exists $x{is_deeply}) { "::is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
+    elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
+    elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
+    elsif(exists $x{qis})  { my $ex = _q_esc($expected);  "::is scalar do {$code}, '$ex', '$q';\n" }
+    elsif(exists $x{like})  { my $ex = _qr_esc($expected);  "::like scalar do {$code}, qr!$ex!, '$q';\n" }
+    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected);  "::unlike scalar do {$code}, qr!$ex!, '$q';\n" }
     else { # Что-то ужасное вырвалось на волю!
         "???"
     }
