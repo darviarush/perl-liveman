@@ -1,4 +1,4 @@
-use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; $s = join "", <$__f__>; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
+use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
 # 
 # Liveman - markdown compiller to test and pod.
 # 
@@ -10,7 +10,7 @@ use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Alway
 # 
 # File lib/Example.md:
 #@> lib/Example.md
-#>> Twice two.
+#>> Twice two:
 #>> ```perl
 #>> 2*2  # -> 2+2
 #>> ```
@@ -25,22 +25,22 @@ my $liveman = Liveman->new;
 # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
 $liveman->transform("lib/Example.md");
 
-is scalar do {$liveman->{count}}, "1", '$liveman->{count}   # => 1';
-is scalar do {-f "t/example.t"}, "1", '-f "t/example.t"    # => 1';
-is scalar do {-f "lib/Example.pm"}, "1", '-f "lib/Example.pm" # => 1';
+::is scalar do {$liveman->{count}}, "1", '$liveman->{count}   # => 1';
+::is scalar do {-f "t/example.t"}, "1", '-f "t/example.t"    # => 1';
+::is scalar do {-f "lib/Example.pm"}, "1", '-f "lib/Example.pm" # => 1';
 
 # compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
 $liveman->transforms;
-is scalar do {$liveman->{count}}, "0", '$liveman->{count}   # => 0';
+::is scalar do {$liveman->{count}}, "0", '$liveman->{count}   # => 0';
 
 # compile without check modification time
-is scalar do {Liveman->new(compile_force => 1)->transforms->{count}}, "1", 'Liveman->new(compile_force => 1)->transforms->{count} # => 1';
+::is scalar do {Liveman->new(compile_force => 1)->transforms->{count}}, "1", 'Liveman->new(compile_force => 1)->transforms->{count} # => 1';
 
 # start tests with yath
 my $yath_return_code = $liveman->tests->{exit_code};
 
-is scalar do {$yath_return_code}, "0", '$yath_return_code           # => 0';
-is scalar do {-f "cover_db/coverage.html"}, "1", '-f "cover_db/coverage.html" # => 1';
+::is scalar do {$yath_return_code}, "0", '$yath_return_code           # => 0';
+::is scalar do {-f "cover_db/coverage.html"}, "1", '-f "cover_db/coverage.html" # => 1';
 
 # limit liveman to these files for operations transforms and tests (without cover)
 my $liveman2 = Liveman->new(files => [], force_compile => 1);
@@ -77,8 +77,8 @@ my $liveman2 = Liveman->new(files => [], force_compile => 1);
 # Compare two expressions for equivalence:
 # 
 done_testing; }; subtest '`is`' => sub { 
-is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # -> "hi" . "!"';
-is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # → "hi" . "!"';
+::is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # -> "hi" . "!"';
+::is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # → "hi" . "!"';
 
 # 
 # ### `is_deeply`
@@ -86,8 +86,8 @@ is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # → "hi" . "!"';
 # Compare two expressions for structures:
 # 
 done_testing; }; subtest '`is_deeply`' => sub { 
-is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # --> "hi" . "!"';
-is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # ⟶ "hi" . "!"';
+::is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # --> "hi" . "!"';
+::is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # ⟶ "hi" . "!"';
 
 # 
 # ### `is` with extrapolate-string
@@ -96,8 +96,8 @@ is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # ⟶ "hi" . "!"';
 # 
 done_testing; }; subtest '`is` with extrapolate-string' => sub { 
 my $exclamation = "!";
-is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # => hi${exclamation}2';
-is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # ⇒ hi${exclamation}2';
+::is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # => hi${exclamation}2';
+::is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # ⇒ hi${exclamation}2';
 
 # 
 # ### `is` with nonextrapolate-string
@@ -105,8 +105,8 @@ is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # ⇒ hi${exclamation}2';
 # Compare expression with nonextrapolate-string:
 # 
 done_testing; }; subtest '`is` with nonextrapolate-string' => sub { 
-is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # \> hi${exclamation}3';
-is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # ↦ hi${exclamation}3';
+::is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # \> hi${exclamation}3';
+::is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # ↦ hi${exclamation}3';
 
 # 
 # ### `like`
@@ -114,8 +114,8 @@ is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' 
 # It check a regular expression included in the expression:
 # 
 done_testing; }; subtest '`like`' => sub { 
-like scalar do {'abbc'}, qr!b+!, '\'abbc\' # ~> b+';
-like scalar do {'abc'}, qr!b+!, '\'abc\'  # ↬ b+';
+::like scalar do {'abbc'}, qr!b+!, '\'abbc\' # ~> b+';
+::like scalar do {'abc'}, qr!b+!, '\'abc\'  # ↬ b+';
 
 # 
 # ### `unlike`
@@ -123,8 +123,8 @@ like scalar do {'abc'}, qr!b+!, '\'abc\'  # ↬ b+';
 # It check a regular expression excluded in the expression:
 # 
 done_testing; }; subtest '`unlike`' => sub { 
-unlike scalar do {'ac'}, qr!b+!, '\'ac\' # <~ b+';
-unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
+::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # <~ b+';
+::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
 
 # 
 # ## EMBEDDING FILES
@@ -144,16 +144,16 @@ unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
 # 
 # File experiment/test.txt is:
 
-{ my $s = 'experiment/test.txt'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; is $n, 'hi!
+{ my $s = 'experiment/test.txt'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, 'hi!
 ', "File $s"; }
 # 
 # **Attention!** An empty string between the prefix and the code is not allowed!
 # 
 # Prefixes maybe on russan: `Файл path:` and `Файл path является:`.
 # 
-# ## METHODS
+# # METHODS
 # 
-# ### new(files=>[...], open => 1, force_compile => 1)
+# ## new (files=>[...], open => 1, force_compile => 1)
 # 
 # Constructor. Has arguments:
 # 
@@ -161,15 +161,15 @@ unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
 # 1. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
 # 1. `force_compile` (boolean) — do not check the md-files modification time.
 # 
-# ### test_path($md_path)
+# ## test_path ($md_path)
 # 
 # Get the path to the `t/**.t`-file from the path to the `lib/**.md`-file:
 # 
-done_testing; }; subtest 'test_path($md_path)' => sub { 
-is scalar do {Liveman->new->test_path("lib/PathFix/RestFix.md")}, "t/path-fix/rest-fix.t", 'Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t';
+done_testing; }; subtest 'test_path ($md_path)' => sub { 
+::is scalar do {Liveman->new->test_path("lib/PathFix/RestFix.md")}, "t/path-fix/rest-fix.t", 'Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t';
 
 # 
-# ### transform($md_path, [$test_path])
+# ## transform ($md_path, [$test_path])
 # 
 # Compile `lib/**.md`-file to `t/**.t`-file.
 # 
@@ -177,7 +177,7 @@ is scalar do {Liveman->new->test_path("lib/PathFix/RestFix.md")}, "t/path-fix/re
 # 
 # File lib/Example.pm is:
 
-{ my $s = 'lib/Example.pm'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; is $n, 'package Example;
+{ my $s = 'lib/Example.pm'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, 'package Example;
 
 1;
 
@@ -191,17 +191,60 @@ Twice two:
 
 ', "File $s"; }
 # 
-# ### transforms()
+# ## transforms ()
 # 
 # Compile `lib/**.md`-files to `t/**.t`-files.
 # 
 # All if `$self->{files}` is empty, or `$self->{files}`.
 # 
-# ### tests()
+# ## tests ()
 # 
 # Tests `t/**.t`-files.
 # 
 # All if `$self->{files}` is empty, or `$self->{files}` only.
+# 
+# ## appends ()
+# 
+# ## append ($path)
+# 
+# Append subroutines and features from the module with `$path` into its documentation in the its sections.
+# 
+# File lib/Alt/The/Plan.pm:
+#@> lib/Alt/The/Plan.pm
+#>> package Alt::The::Plan;
+#>> 
+#>> sub planner {
+#>> 	my ($self) = @_;
+#>> }
+#>> 
+#>> # This is first!
+#>> sub miting {
+#>> 	my ($self, $meet, $man, $woman) = @_;
+#>> }
+#>> 
+#>> sub _exquise_me {
+#>> 	my ($self, $meet, $man, $woman) = @_;
+#>> }
+#>> 
+#>> 1;
+#@< EOF
+# 
+done_testing; }; subtest 'append ($path)' => sub { 
+::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{""}, '-e "lib/Alt/The/Plan.md" # -> ""';
+
+my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
+
+::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{1}, '-e "lib/Alt/The/Plan.md" # -> 1';
+
+open my $f, "<:utf8", "lib/Alt/The/Plan.md"; read $f, my $x, -s $f; close $f;
+
+::like scalar do {$x}, qr!## planner \(\)\n\n!, '$x # ~> ## planner \(\)\n\n';
+::like scalar do {$x}, qr!## miting \(\$meet, \$man, \$woman\)\n\nThis is first\!\n\n!, '$x # ~> ## miting \(\$meet, \$man, \$woman\)\n\nThis is first!\n\n';
+::unlike scalar do {$x}, qr!_exquise_me!, '$x # <~ _exquise_me';
+
+::is scalar do {$x}, "#NAME\n\nAlt::The::Plan -", '$x # => #NAME\n\nAlt::The::Plan -';
+
 # 
 # # INSTALL
 # 

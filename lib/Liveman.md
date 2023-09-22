@@ -10,7 +10,7 @@ Liveman - markdown compiller to test and pod.
 
 File lib/Example.md:
 ```markdown
-Twice two.
+Twice two:
 \```perl
 2*2  # -> 2+2
 \```
@@ -151,9 +151,9 @@ hi!
 
 Prefixes maybe on russan: `Файл path:` and `Файл path является:`.
 
-## METHODS
+# METHODS
 
-### new(files=>[...], open => 1, force_compile => 1)
+## new (files=>[...], open => 1, force_compile => 1)
 
 Constructor. Has arguments:
 
@@ -161,7 +161,7 @@ Constructor. Has arguments:
 1. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
 1. `force_compile` (boolean) — do not check the md-files modification time.
 
-### test_path($md_path)
+## test_path ($md_path)
 
 Get the path to the `t/**.t`-file from the path to the `lib/**.md`-file:
 
@@ -169,7 +169,7 @@ Get the path to the `t/**.t`-file from the path to the `lib/**.md`-file:
 Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
 ```
 
-### transform($md_path, [$test_path])
+## transform ($md_path, [$test_path])
 
 Compile `lib/**.md`-file to `t/**.t`-file.
 
@@ -191,17 +191,101 @@ Twice two:
 
 ```
 
-### transforms()
+## transforms ()
 
 Compile `lib/**.md`-files to `t/**.t`-files.
 
 All if `$self->{files}` is empty, or `$self->{files}`.
 
-### tests()
+## tests ()
 
 Tests `t/**.t`-files.
 
 All if `$self->{files}` is empty, or `$self->{files}` only.
+
+## appends ()
+
+Append 
+
+## append ($path)
+
+Append subroutines and features from the module with `$path` into its documentation in the its sections.
+
+File lib/Alt/The/Plan.pm:
+```perl
+package Alt::The::Plan;
+
+sub planner {
+	my ($self) = @_;
+}
+
+# This is first!
+sub miting {
+	my ($self, $meet, $man, $woman) = @_;
+}
+
+sub _exquise_me {
+	my ($self, $meet, $man, $woman) = @_;
+}
+
+1;
+```
+
+```perl
+-e "lib/Alt/The/Plan.md" # -> ""
+
+my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+$liveman->{count}	# -> 1
+
+-e "lib/Alt/The/Plan.md" # -> 1
+```
+
+File lib/Alt/The/Plan.md is:
+```markdown
+# NAME
+
+Alt::The::Plan - 
+
+# VERSION
+
+0.0.0-prealpha
+
+# SYNOPSIS
+
+\```perl
+my $scalar = Alt::The::Plan->new;
+\```
+
+# DESCRIPION
+
+.
+
+# SUBROUTINES
+
+## planner ()
+
+
+
+## miting ($meet, $man, $woman)
+
+This is first!
+
+# INSTALL
+
+For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
+
+\```
+sudo cpm install -gvv Alt::The::Plan
+\```
+
+# LICENSE
+
+⚖ **GPLv3**
+
+# AUTHOR
+
+Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+```
 
 # INSTALL
 

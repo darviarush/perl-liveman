@@ -17,10 +17,126 @@ sub new {
     $self
 }
 
+# Добавить разделы функций в *.md из *.pm
+sub appends {
+    my ($self) = @_;
+    $self->append($_) for @{$self->{files} // [split /\n/, `find lib -name '*.pm'`]};
+    $self
+}
+
+# Добавить разделы функций в *.md из *.pm
+sub append {
+    my ($self, $path) = @_;
+
+    my $pm = $path =~ s!(\.\w+)?$!.pm!r;
+    my $md = $path =~ s!(\.\w+)?$!.md!r;
+
+    warn("Not file $pm!"), return if !-f $pm;
+    $self->mkmd($md) if !-f $md;
+
+    local $_ = read_text $pm;
+    my %sub; my %has;
+    while(m! (^\# (?<remark> .*) \n )? (
+        ^sub \s+ (?<sub> (\w+|::)+ ) .* 
+            ( \s* my \s* \( \s* (\$self,? \s* )? (?<args>.*?) \s* \) \s* = \s* \@_; )?
+        | ^has \s+ (?<has> (\w+|'\w+'|"\w+"|\[ \s* ([^\[\]]*?) \s* \])+ )
+    ) !mgxn) {
+        $sub{$+{sub}} = {%+} if exists $+{sub} and "_" ne substr $+{sub}, 0, 1;
+        $has{$+{has}} = {%+} if exists $+{has} and "_" ne substr $+{has}, 0, 1;
+    }
+
+    return $self if !keys %sub && !keys %has;
+
+    $_ = read_text $md;
+
+    my $added = 0;
+
+    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION .*? (?=\n\#\s) ) .*? ^\#\s}{
+        my $x = $&; my $is = $+{is};
+        while($x =~ /^\#\#[\ \t]+(\w+)/g) {
+            delete $sub{$1};
+        }
+
+        $added += keys %sub;
+        join "", $x, $is? (): "# SUBROUTINES\n\n", map { "## $_ ($sub{$_}{args})\n\n$sub{remark}\n\n" } keys %sub;
+    }emsx or die "Нет секции DESCRIPTION!" if keys %sub;
+
+    s{^\#[\ \t]+(FEATURES | DESCRIPTION .*? (?=\n\#\s)) .*? ^\#}{
+        my $x = $&; my $is = $+{is};
+
+        while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/g) {
+            delete $has{$1};
+        }
+
+        $added += keys %has;
+
+        join "", $x, $is? (): "# FEATURES\n\n", map { "## $_\n\n$sub{remark}\n\n" } keys %sub;
+    }emsx or die "Нет секции DESCRIPTION!" if keys %has;
+
+    write_text $md, $_ if $added;
+
+    $self->{count}++;
+    $self
+}
+
+# Добавить разделы функций в *.md из *.pm
+sub mkmd {
+    my ($self, $md) = @_;
+
+    my $pkg = $md; $pkg =~ s!^lib/!!; $pkg =~ s!\.\w+$!!;
+    $pkg =~ s!/!::!g;
+
+    my $author = _trim(`git config user.name`);
+    my $email = _trim(`git config user.email`);
+
+    write_text $md, << "END";
+# NAME
+
+$pkg - 
+
+# VERSION
+
+0.0.0-prealpha
+
+# SYNOPSIS
+
+```perl
+my \$scalar = $pkg->new;
+```
+
+# DESCRIPION
+
+.
+
+# SUBROUTINES
+
+# INSTALL
+
+For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
+
+```
+sudo cpm install -gvv $pkg
+```
+
+# LICENSE
+
+⚖ **GPLv3**
+
+# AUTHOR
+
+$author [$email](mailto:$email)
+
+END
+}
+
 # Получить путь к тестовому файлу из пути к md-файлу
 sub test_path {
     my ($self, $md) = @_;
-    $md =~ s!^lib/(.*)\.md$!"t/" . join("/", map {lcfirst($_) =~ s/[A-Z]/"-" . lc $&/gre} split /\//, $1) . ".t" !e;
+    $md =~ s!^lib/(.*)\.md$!
+        join "", "t/", join("/", map {
+            lcfirst($_) =~ s/[A-Z]/"-" . lc $&/gre
+        } split /\//, $1), ".t"
+    !e;
     $md
 }
 
@@ -145,7 +261,7 @@ sub transform {
         if($infile) {
             my $real_code = $code =~ s/^\\(```\w*[\t ]*$)/$1/mgro;
             if($is) { # тестируем, что текст совпадает
-                push @test, "\n{ my \$s = '${\_q_esc($infile)}'; open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
+                push @test, "\n{ my \$s = '${\_q_esc($infile)}'; open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; ::is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
             }
             else { # записываем тект в файл
                 #push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '>:utf8', \$s or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($real_code)}'; close \$__f__ }\n";
@@ -160,8 +276,7 @@ sub transform {
                 $use_title = $title;
             }
 
-            my $test = $code =~ s{^(?<code>.*)#[ \t]*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦)|(?<like>~>|↬)|(?<unlike><
-            ~|↫))\s*(?<expected>.+?)[ \t]*\n}{ _to_testing($&, %+) }grme;
+            my $test = $code =~ s{^(?<code>.*)#[ \t]*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦)|(?<like>~>|↬)|(?<unlike><~|↫))\s*(?<expected>.+?)[ \t]*\n}{ _to_testing($&, %+) }grme;
             push @test, "\n", $test, "\n";
         }
         else {
@@ -174,7 +289,7 @@ sub transform {
 
     _mkpath($test);
     my $mkpath = q{sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p }};
-    my $write_files = q{open my $__f__, "<:utf8", $t or die "Read $t: $!"; $s = join "", <$__f__>; close $__f__; while($s =~ /^#\\@> (.*)\n((#>> .*\n)*)#\\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; }};
+    my $write_files = q{open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\\@> (.*)\n((#>> .*\n)*)#\\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; }};
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
@@ -248,7 +363,7 @@ Liveman - markdown compiller to test and pod.
 
 File lib/Example.md:
 
-	Twice two.
+	Twice two:
 	\```perl
 	2*2  # -> 2+2
 	\```
@@ -373,9 +488,9 @@ B<Attention!> An empty string between the prefix and the code is not allowed!
 
 Prefixes maybe on russan: C<Файл path:> and C<Файл path является:>.
 
-=head2 METHODS
+=head1 METHODS
 
-=head3 new(files=>[...], open => 1, force_compile => 1)
+=head2 new (files=>[...], open => 1, force_compile => 1)
 
 Constructor. Has arguments:
 
@@ -389,13 +504,13 @@ Constructor. Has arguments:
 
 =back
 
-=head3 test_path($md_path)
+=head2 test_path ($md_path)
 
 Get the path to the C<t/**.t>-file from the path to the C<lib/**.md>-file:
 
 	Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
 
-=head3 transform($md_path, [$test_path])
+=head2 transform ($md_path, [$test_path])
 
 Compile C<lib/**.md>-file to C<t/**.t>-file.
 
@@ -416,17 +531,59 @@ File lib/Example.pm is:
 		2*2  # -> 2+2
 	
 
-=head3 transforms()
+=head2 transforms ()
 
 Compile C<lib/**.md>-files to C<t/**.t>-files.
 
 All if C<< $self-E<gt>{files} >> is empty, or C<< $self-E<gt>{files} >>.
 
-=head3 tests()
+=head2 tests ()
 
 Tests C<t/**.t>-files.
 
 All if C<< $self-E<gt>{files} >> is empty, or C<< $self-E<gt>{files} >> only.
+
+=head2 appends ()
+
+=head2 append ($path)
+
+Append subroutines and features from the module with C<$path> into its documentation in the its sections.
+
+File lib/Alt/The/Plan.pm:
+
+	package Alt::The::Plan;
+	
+	sub planner {
+		my ($self) = @_;
+	}
+	
+	# This is first!
+	sub miting {
+		my ($self, $meet, $man, $woman) = @_;
+	}
+	
+	sub _exquise_me {
+		my ($self, $meet, $man, $woman) = @_;
+	}
+	
+	1;
+
+
+
+	-e "lib/Alt/The/Plan.md" # -> ""
+	
+	my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+	$liveman->{count}	# -> 1
+	
+	-e "lib/Alt/The/Plan.md" # -> 1
+	
+	open my $f, "<:utf8", "lib/Alt/The/Plan.md"; read $f, my $x, -s $f; close $f;
+	
+	$x # ~> ## planner \(\)\n\n
+	$x # ~> ## miting \(\$meet, \$man, \$woman\)\n\nThis is first!\n\n
+	$x # <~ _exquise_me
+	
+	$x # => #NAME\n\nAlt::The::Plan -
 
 =head1 INSTALL
 
