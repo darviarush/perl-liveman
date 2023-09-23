@@ -11,10 +11,10 @@ use Liveman;
 my $parse_options_ok = GetOptions(
     'help|h' => \( my $help = 0 ),
     'man'    => \( my $man  = 0 ),
-
     'o|open!' => \( my $open = 0 ),
     'c|compile!' => \( my $compile_only = 0 ),
     'f|force!' => \( my $compile_force = 0 ),
+    'a|append!' => \( my $append = 0 ),
 );
 
 if ( !$parse_options_ok ) {
@@ -28,6 +28,10 @@ elsif ($help) {
 }
 elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
+}
+elsif($append) {
+    my $liveman = Liveman->new(files => \@ARGV)->append;
+    exit $liveman->{count} > 0? 0: 1;
 }
 else {
     my $liveman = Liveman->new(
@@ -54,7 +58,7 @@ Version 0.01
 
 =head1 SYNOPSIS
 
-    liveman [-h] [--man] [-o][-c][-f] [<files> ...]
+    liveman [-h] [--man] [-o][-c][-f][-s] [<files> ...]
 
 =head1 DESCRIPTION
 
@@ -97,6 +101,10 @@ Version 0.01
 =item B<-f>, B<--force>
 
 Трансформировать файлы lib/**.md даже если они не изменились.
+
+=item B<-а>, B<--append>
+
+Добавить разделы функций в *.md из *.pm и завершиться.
 
 =back
 
