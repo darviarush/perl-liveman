@@ -17,6 +17,58 @@ sub new {
     $self
 }
 
+# Пакет из пути
+sub _pkg($) {
+    ( shift =~ s!^lib/(.*)\.\w+$!$1!r ) =~ s!/!::!gr
+}
+
+# Переменная из пакета
+sub _var($) {
+    '$' . lcfirst( shift =~ s!::(\w)?!_${\lc $1}!gr )
+}
+
+# Для метода для вставки
+sub _md_method(@) {
+    my ($pkg, $sub, $args, $remark) = @_;
+    my $sub_args = "$sub ($args)";
+    $args = "($args)" if $args;
+
+    $remark = "." unless defined $remark;
+    my $var = _var $pkg;
+    << "END";
+## $sub_args
+
+$remark
+
+```perl
+my $var = $pkg->new;
+${var}->$sub$args  # -> .3
+```
+
+END
+}
+
+# Для фичи для вставки
+sub _md_feature(@) {
+    my ($pkg, $has, $remark) = @_;
+
+    $remark = "." unless defined $remark;
+    my $var = _var $pkg;
+    << "END";
+## $has
+
+$remark
+
+```perl
+my $var = $pkg->new;
+
+${var}->$has\t# -> .5
+```
+
+END
+}
+
+
 # Добавить разделы функций в *.md из *.pm
 sub appends {
     my ($self) = @_;
@@ -36,10 +88,10 @@ sub append {
 
     local $_ = read_text $pm;
     my %sub; my %has;
-    while(m! (^\# (?<remark> .*) \n )? (
-        ^sub \s+ (?<sub> (\w+|::)+ ) .* 
+    while(m! (^\# [\ \t]* (?<remark> .*?) [\ \t]* )? \n (
+        sub \s+ (?<sub> (\w+|::)+ ) .* 
             ( \s* my \s* \( \s* (\$self,? \s* )? (?<args>.*?) \s* \) \s* = \s* \@_; )?
-        | ^has \s+ (?<has> (\w+|'\w+'|"\w+"|\[ \s* ([^\[\]]*?) \s* \])+ )
+        | has \s+ (?<has> (\w+|'\w+'|"\w+"|\[ \s* ([^\[\]]*?) \s* \])+ )
     ) !mgxn) {
         $sub{$+{sub}} = {%+} if exists $+{sub} and "_" ne substr $+{sub}, 0, 1;
         $has{$+{has}} = {%+} if exists $+{has} and "_" ne substr $+{has}, 0, 1;
@@ -49,19 +101,21 @@ sub append {
 
     $_ = read_text $md;
 
+    my $pkg = _pkg $md;
+
     my $added = 0;
 
-    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION .*? (?=\n\#\s) ) .*? ^\#\s}{
+    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION .*? \n\#\s ) .*? (?= ^\#\s) }{
         my $x = $&; my $is = $+{is};
         while($x =~ /^\#\#[\ \t]+(\w+)/g) {
             delete $sub{$1};
         }
 
         $added += keys %sub;
-        join "", $x, $is? (): "# SUBROUTINES\n\n", map { "## $_ ($sub{$_}{args})\n\n$sub{remark}\n\n" } keys %sub;
+        join "", $x, $is? (): "# SUBROUTINES/METHODS\n\n", map { _md_method $pkg, $_, $sub{$_}{args}, $sub{$_}{remark} } sort keys %sub;
     }emsx or die "Нет секции DESCRIPTION!" if keys %sub;
 
-    s{^\#[\ \t]+(FEATURES | DESCRIPTION .*? (?=\n\#\s)) .*? ^\#}{
+    s{^\#[\ \t]+(FEATURES | DESCRIPTION .*? \n\#\s) .*? (?= ^\#\s) }{
         my $x = $&; my $is = $+{is};
 
         while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/g) {
@@ -70,7 +124,7 @@ sub append {
 
         $added += keys %has;
 
-        join "", $x, $is? (): "# FEATURES\n\n", map { "## $_\n\n$sub{remark}\n\n" } keys %sub;
+        join "", $x, $is? (): "# FEATURES\n\n", map { _md_feature $pkg, $_, $sub{$_}{remark} } sort keys %has;
     }emsx or die "Нет секции DESCRIPTION!" if keys %has;
 
     write_text $md, $_ if $added;
@@ -79,15 +133,23 @@ sub append {
     $self
 }
 
+sub _git_user_name { shift->{_git_user_name} //= _trim(`git config user.name`) }
+sub _git_user_email { shift->{_git_user_email} //= _trim(`git config user.email`) }
+sub _year { shift->{_year} //= _trim(`date +%Y`) }
+sub _license { shift->{_license} //= -r "minil.toml" && read_text("minil.toml") =~ /^\s*license\s*=\s*"([^"\n]*)"/m ? ($1 eq "perl_5"? "Perl5": uc($1) =~ s/_/v/r): "Perl5" }
+sub _land { shift->{_land} //= `curl "https://ipapi.co/\$(curl https://2ip.ru --connect-timeout 3 --max-time 3 -Ss)/json/" --connect-timeout 3 --max-time 3 -Ss` =~ /country_name": "([^"\n]*)"/ ? ($1 eq "Russia" ? "Rusland" : $1) : 'Rusland' }
+
 # Добавить разделы функций в *.md из *.pm
 sub mkmd {
     my ($self, $md) = @_;
 
-    my $pkg = $md; $pkg =~ s!^lib/!!; $pkg =~ s!\.\w+$!!;
-    $pkg =~ s!/!::!g;
+    my $pkg = _pkg $md;
 
-    my $author = _trim(`git config user.name`);
-    my $email = _trim(`git config user.email`);
+    my $author = $self->_git_user_name;
+    my $email = $self->_git_user_email;
+    my $year = $self->_year;
+    my $license = $self->_license;
+    my $land = $self->_land;
 
     write_text $md, << "END";
 # NAME
@@ -101,7 +163,7 @@ $pkg -
 # SYNOPSIS
 
 ```perl
-my \$scalar = $pkg->new;
+my ${\_var $pkg} = $pkg->new;
 ```
 
 # DESCRIPION
@@ -118,14 +180,17 @@ For install this module in your system run next [command](https://metacpan.org/p
 sudo cpm install -gvv $pkg
 ```
 
-# LICENSE
-
-⚖ **GPLv3**
-
 # AUTHOR
 
 $author [$email](mailto:$email)
 
+# LICENSE
+
+⚖ **$license**
+
+# COPYRIGHT
+
+The $pkg module is copyright © $year $author. $land. All rights reserved.
 END
 }
 
@@ -572,7 +637,13 @@ File lib/Alt/The/Plan.pm:
 
 
 
-	-e "lib/Alt/The/Plan.md" # -> ""
+	-e "lib/Alt/The/Plan.md" # -> undef
+	
+	*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
+	*Liveman::_git_user_email = sub {'dart@cpan.org'};
+	*Liveman::_year = sub {2023};
+	*Liveman::_license = sub {"Perl5"};
+	*Liveman::_land = sub {"Rusland"};
 	
 	my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
 	$liveman->{count}	# -> 1
@@ -592,7 +663,7 @@ File lib/Alt/The/Plan.md is:
 	# SYNOPSIS
 	
 	\```perl
-	my $scalar = Alt::The::Plan->new;
+	my $alt_the_plan = Alt::The::Plan->new;
 	\```
 	
 	# DESCRIPION
@@ -601,13 +672,23 @@ File lib/Alt/The/Plan.md is:
 	
 	# SUBROUTINES
 	
-	## planner ()
-	
-	
-	
 	## miting ($meet, $man, $woman)
 	
 	This is first!
+	
+	\```perl
+	my $alt_the_plan = Alt::The::Plan->new;
+	$alt_the_plan->miting($meet, $man, $woman)  # -> .3
+	\```
+	
+	## planner ()
+	
+	.
+	
+	\```perl
+	my $alt_the_plan = Alt::The::Plan->new;
+	$alt_the_plan->planner  # -> .3
+	\```
 	
 	# INSTALL
 	
@@ -617,13 +698,17 @@ File lib/Alt/The/Plan.md is:
 	sudo cpm install -gvv Alt::The::Plan
 	\```
 	
-	# LICENSE
-	
-	⚖ **GPLv3**
-	
 	# AUTHOR
 	
-	Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+	Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+	
+	# LICENSE
+	
+	⚖ **Perl5**
+	
+	# COPYRIGHT
+	
+	The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
 =head1 INSTALL
 

@@ -1,4 +1,4 @@
-use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; $s = join "", <$__f__>; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
+use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
 # 
 # Liveman - markdown compiller to test and pod.
 # 
@@ -123,7 +123,7 @@ done_testing; }; subtest '`like`' => sub {
 # It check a regular expression excluded in the expression:
 # 
 done_testing; }; subtest '`unlike`' => sub { 
-'ac' # <~ b+
+::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # <~ b+';
 ::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
 
 # 
@@ -144,7 +144,7 @@ done_testing; }; subtest '`unlike`' => sub {
 # 
 # File experiment/test.txt is:
 
-{ my $s = 'experiment/test.txt'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; is $n, 'hi!
+{ my $s = 'experiment/test.txt'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, 'hi!
 ', "File $s"; }
 # 
 # **Attention!** An empty string between the prefix and the code is not allowed!
@@ -177,7 +177,7 @@ done_testing; }; subtest 'test_path ($md_path)' => sub {
 # 
 # File lib/Example.pm is:
 
-{ my $s = 'lib/Example.pm'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; is $n, 'package Example;
+{ my $s = 'lib/Example.pm'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, 'package Example;
 
 1;
 
@@ -232,7 +232,13 @@ Twice two:
 #@< EOF
 # 
 done_testing; }; subtest 'append ($path)' => sub { 
-::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{""}, '-e "lib/Alt/The/Plan.md" # -> ""';
+::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{undef}, '-e "lib/Alt/The/Plan.md" # -> undef';
+
+*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
+*Liveman::_git_user_email = sub {'dart@cpan.org'};
+*Liveman::_year = sub {2023};
+*Liveman::_license = sub {"Perl5"};
+*Liveman::_land = sub {"Rusland"};
 
 my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
 ::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
@@ -242,7 +248,7 @@ my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
 # 
 # File lib/Alt/The/Plan.md is:
 
-{ my $s = 'lib/Alt/The/Plan.md'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; is $n, '# NAME
+{ my $s = 'lib/Alt/The/Plan.md'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, '# NAME
 
 Alt::The::Plan - 
 
@@ -253,7 +259,7 @@ Alt::The::Plan -
 # SYNOPSIS
 
 ```perl
-my $scalar = Alt::The::Plan->new;
+my $alt_the_plan = Alt::The::Plan->new;
 ```
 
 # DESCRIPION
@@ -262,13 +268,23 @@ my $scalar = Alt::The::Plan->new;
 
 # SUBROUTINES
 
-## planner ()
-
-
-
 ## miting ($meet, $man, $woman)
 
 This is first!
+
+```perl
+my $alt_the_plan = Alt::The::Plan->new;
+$alt_the_plan->miting($meet, $man, $woman)  # -> .3
+```
+
+## planner ()
+
+.
+
+```perl
+my $alt_the_plan = Alt::The::Plan->new;
+$alt_the_plan->planner  # -> .3
+```
 
 # INSTALL
 
@@ -278,13 +294,17 @@ For install this module in your system run next [command](https://metacpan.org/p
 sudo cpm install -gvv Alt::The::Plan
 ```
 
-# LICENSE
-
-⚖ **GPLv3**
-
 # AUTHOR
 
-Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+
+# LICENSE
+
+⚖ **Perl5**
+
+# COPYRIGHT
+
+The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 ', "File $s"; }
 # 
 # # INSTALL

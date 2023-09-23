@@ -232,7 +232,13 @@ sub _exquise_me {
 ```
 
 ```perl
--e "lib/Alt/The/Plan.md" # -> ""
+-e "lib/Alt/The/Plan.md" # -> undef
+
+*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
+*Liveman::_git_user_email = sub {'dart@cpan.org'};
+*Liveman::_year = sub {2023};
+*Liveman::_license = sub {"Perl5"};
+*Liveman::_land = sub {"Rusland"};
 
 my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
 $liveman->{count}	# -> 1
@@ -253,7 +259,7 @@ Alt::The::Plan -
 # SYNOPSIS
 
 \```perl
-my $scalar = Alt::The::Plan->new;
+my $alt_the_plan = Alt::The::Plan->new;
 \```
 
 # DESCRIPION
@@ -262,13 +268,23 @@ my $scalar = Alt::The::Plan->new;
 
 # SUBROUTINES
 
-## planner ()
-
-
-
 ## miting ($meet, $man, $woman)
 
 This is first!
+
+\```perl
+my $alt_the_plan = Alt::The::Plan->new;
+$alt_the_plan->miting($meet, $man, $woman)  # -> .3
+\```
+
+## planner ()
+
+.
+
+\```perl
+my $alt_the_plan = Alt::The::Plan->new;
+$alt_the_plan->planner  # -> .3
+\```
 
 # INSTALL
 
@@ -278,13 +294,17 @@ For install this module in your system run next [command](https://metacpan.org/p
 sudo cpm install -gvv Alt::The::Plan
 \```
 
-# LICENSE
-
-⚖ **GPLv3**
-
 # AUTHOR
 
-Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+
+# LICENSE
+
+⚖ **Perl5**
+
+# COPYRIGHT
+
+The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 ```
 
 # INSTALL
