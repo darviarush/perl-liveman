@@ -12,9 +12,9 @@ my $parse_options_ok = GetOptions(
     'help|h' => \( my $help = 0 ),
     'man'    => \( my $man  = 0 ),
 
-    'o|open' => \( my $open = 0 ),
-    'c|compile' => \( my $compile_only = 0 ),
-    'f|force' => \( my $compile_force = 0 ),
+    'o|open!' => \( my $open = 0 ),
+    'c|compile!' => \( my $compile_only = 0 ),
+    'f|force!' => \( my $compile_force = 0 ),
 );
 
 if ( !$parse_options_ok ) {

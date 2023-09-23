@@ -9,42 +9,40 @@ Liveman - markdown compiller to test and pod.
 # SYNOPSIS
 
 File lib/Example.md:
-```markdown
-Twice two.
-\```perl
-2*2  # -> 2+2
-\```
-```
+
+        Twice two.
+        \```perl
+        2*2  # -> 2+2
+        \```
 
 Test:
-```perl
-use Liveman;
 
-my $liveman = Liveman->new;
-
-# compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
-$liveman->transform("lib/Example.md");
-
-$liveman->{count}   # => 1
--f "t/example.t"    # => 1
--f "lib/Example.pm" # => 1
-
-# compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
-$liveman->transforms;
-$liveman->{count}   # => 0
-
-# compile without check modification time
-Liveman->new(compile_force => 1)->transforms->{count} # => 1
-
-# start tests with yath
-my $yath_return_code = $liveman->tests->{exit_code};
-
-$yath_return_code           # => 0
--f "cover_db/coverage.html" # => 1
-
-# limit liveman to these files for operations transforms and tests (without cover)
-my $liveman2 = Liveman->new(files => [], force_compile => 1);
-```
+        use Liveman;
+        
+        my $liveman = Liveman->new;
+        
+        # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+        $liveman->transform("lib/Example.md");
+        
+        $liveman->{count}   # => 1
+        -f "t/example.t"    # => 1
+        -f "lib/Example.pm" # => 1
+        
+        # compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
+        $liveman->transforms;
+        $liveman->{count}   # => 0
+        
+        # compile without check modification time
+        Liveman->new(compile_force => 1)->transforms->{count} # => 1
+        
+        # start tests with yath
+        my $yath_return_code = $liveman->tests->{exit_code};
+        
+        $yath_return_code           # => 0
+        -f "cover_db/coverage.html" # => 1
+        
+        # limit liveman to these files for operations transforms and tests (without cover)
+        my $liveman2 = Liveman->new(files => [], force_compile => 1);
 
 # DESCRIPION
 
@@ -76,76 +74,62 @@ The test name set as the code-line.
 
 Compare two expressions for equivalence:
 
-```perl
-"hi!" # -> "hi" . "!"
-"hi!" # → "hi" . "!"
-```
+        "hi!" # -> "hi" . "!"
+        "hi!" # → "hi" . "!"
 
 ### `is_deeply`
 
 Compare two expressions for structures:
 
-```perl
-"hi!" # --> "hi" . "!"
-"hi!" # ⟶ "hi" . "!"
-```
+        "hi!" # --> "hi" . "!"
+        "hi!" # ⟶ "hi" . "!"
 
 ### `is` with extrapolate-string
 
 Compare expression with extrapolate-string:
 
-```perl
-my $exclamation = "!";
-"hi!2" # => hi${exclamation}2
-"hi!2" # ⇒ hi${exclamation}2
-```
+        my $exclamation = "!";
+        "hi!2" # => hi${exclamation}2
+        "hi!2" # ⇒ hi${exclamation}2
 
 ### `is` with nonextrapolate-string
 
 Compare expression with nonextrapolate-string:
 
-```perl
-'hi${exclamation}3' # \> hi${exclamation}3
-'hi${exclamation}3' # ↦ hi${exclamation}3
-```
+        'hi${exclamation}3' # \> hi${exclamation}3
+        'hi${exclamation}3' # ↦ hi${exclamation}3
 
 ### `like`
 
 It check a regular expression included in the expression:
 
-```perl
-'abbc' # ~> b+
-'abc'  # ↬ b+
-```
+        'abbc' # ~> b+
+        'abc'  # ↬ b+
 
 ### `unlike`
 
 It check a regular expression excluded in the expression:
 
-```perl
-'ac' # <~ b+
-'ac' # ↫ b+
-```
+        'ac' # <~ b+
+        'ac' # ↫ b+
 
 ## EMBEDDING FILES
 
 Each test is executed in a temporary directory, which is erased and created when the test is run.
 
-This directory format is /tmp/.liveman/*project*/*path-to-test*/.
+This directory format is /tmp/.liveman/_project_/_path-to-test_/.
 
 Code section in md-file prefixed line **File `path`:** write to file in rintime testing.
 
 Code section in md-file prefixed line **File `path` is:** will be compared with the file by the method `Test::More::is`.
 
 File experiment/test.txt:
-```text
-hi!
-```
+
+        hi!
 
 File experiment/test.txt is:
-```text
-hi!
-```
+
+        hi!
 
 **Attention!** An empty string between the prefix and the code is not allowed!
 
@@ -153,43 +137,40 @@ Prefixes maybe on russan: `Файл path:` and `Файл path является:`
 
 ## METHODS
 
-### new(files=>[...], open => 1, force_compile => 1)
+### new(files=>\[...\], open => 1, force\_compile => 1)
 
 Constructor. Has arguments:
 
-1. `files` (array_ref) — list of md-files for methods `transforms` and `tests`.
-1. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
-1. `force_compile` (boolean) — do not check the md-files modification time.
+- 1. `files` (array\_ref) — list of md-files for methods `transforms` and `tests`.
+- 2. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
+- 3. `force_compile` (boolean) — do not check the md-files modification time.
 
-### test_path($md_path)
+### test\_path($md\_path)
 
 Get the path to the `t/**.t`-file from the path to the `lib/**.md`-file:
 
-```perl
-Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
-```
+        Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
 
-### transform($md_path, [$test_path])
+### transform($md\_path, \[$test\_path\])
 
 Compile `lib/**.md`-file to `t/**.t`-file.
 
 And method `transform` replace the **pod**-documentation in section `__END__` in `lib/**.pm`-file. And create `lib/**.pm`-file if it not exists.
 
 File lib/Example.pm is:
-```perl
-package Example;
 
-1;
-
-__END__
-
-=encoding utf-8
-
-Twice two:
-
-	2*2  # -> 2+2
-
-```
+        package Example;
+        
+        1;
+        
+        __END__
+        
+        =encoding utf-8
+        
+        Twice two:
+        
+                2*2  # -> 2+2
+        
 
 ### transforms()
 
@@ -207,20 +188,16 @@ All if `$self->{files}` is empty, or `$self->{files}` only.
 
 Add to **cpanfile** in your project:
 
-```cpanfile
-on 'test' => sub {
-	requires 'Liveman', 
-		git => 'https://github.com/darviarush/perl-liveman.git',
-		ref => 'master',
-	;
-};
-```
+        on 'test' => sub {
+                requires 'Liveman', 
+                        git => 'https://github.com/darviarush/perl-liveman.git',
+                        ref => 'master',
+                ;
+        };
 
 And run command:
 
-```sh
-$ sudo cpm install -gvv
-```
+        $ sudo cpm install -gvv
 
 # LICENSE
 
@@ -228,4 +205,4 @@ $ sudo cpm install -gvv
 
 # AUTHOR
 
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+Yaroslav O. Kosmina L[mailto:dart@cpan.org](mailto:dart@cpan.org)
