@@ -72,18 +72,18 @@ END
 # Добавить разделы функций в *.md из *.pm
 sub appends {
     my ($self) = @_;
-    $self->append($_) for @{$self->{files} // [split /\n/, `find lib -name '*.pm'`]};
+    my $files = $self->{files} // [split /\n/, `find lib -name '*.pm' -a -type f`];
+    $self->append($_) for @$files;
     $self
 }
 
 # Добавить разделы функций в *.md из *.pm
 sub append {
-    my ($self, $path) = @_;
+    my ($self, $pm) = @_;
 
-    my $pm = $path =~ s!(\.\w+)?$!.pm!r;
-    my $md = $path =~ s!(\.\w+)?$!.md!r;
+    my $md = $pm =~ s!(\.\w+)?$!.md!r;
 
-    warn("Not file $pm!"), return if !-f $pm;
+    die "Not file $pm!" if !-f $pm;
     $self->mkmd($md) if !-f $md;
 
     local $_ = read_text $pm;
@@ -127,7 +127,16 @@ sub append {
         join "", $x, $is? (): "# FEATURES\n\n", map { _md_feature $pkg, $_, $sub{$_}{remark} } sort keys %has;
     }emsx or die "Нет секции DESCRIPTION!" if keys %has;
 
-    write_text $md, $_ if $added;
+
+    if ($added) {
+        write_text $md, $_;
+        print "🔖 $pm ", colored("⊂", "BRIGHT_WHITE"), " $md ", "\n",
+            "  ", scalar keys %has? (colored("FEATURES ", "BRIGHT_WHITE"), join(colored(", ", "red"), sort keys %has), "\n"): (),
+            "  ", scalar keys %sub? (colored("SUBROUTINES ", "BRIGHT_WHITE"), join(colored(", ", "red"), sort keys %sub), "\n"): (),
+        ;
+    } else {
+        print "🔖 $pm\n";
+    }
 
     $self->{count}++;
     $self

@@ -30,7 +30,7 @@ elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
 }
 elsif($append) {
-    my $liveman = Liveman->new(files => \@ARGV)->append;
+    my $liveman = Liveman->new(files => \@ARGV)->appends;
     exit $liveman->{count} > 0? 0: 1;
 }
 else {
