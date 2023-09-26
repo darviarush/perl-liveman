@@ -2,19 +2,21 @@
 
 use common::sense;
 
-use Getopt::Long qw(:config no_ignore_case);
+use Getopt::Long qw(:config no_ignore_case bundling);
 use Pod::Usage;
 use Term::ANSIColor qw/:constants/;
 
 use Liveman;
 
 my $parse_options_ok = GetOptions(
-    'help|h' => \( my $help = 0 ),
-    'man'    => \( my $man  = 0 ),
-    'o|open!' => \( my $open = 0 ),
-    'c|compile!' => \( my $compile_only = 0 ),
-    'f|force!' => \( my $compile_force = 0 ),
-    'a|append!' => \( my $append = 0 ),
+    'help|h'      => \( my $help = 0 ),
+    'man'         => \( my $man  = 0 ),
+    'O|options=s' => \( my $options ),
+    'p|prove!'    => \( my $prove = 0 ),
+    'o|open!'     => \( my $open = 0 ),
+    'c|compile!'  => \( my $compile_only = 0 ),
+    'f|force!'    => \( my $compile_force = 0 ),
+    'a|append!'   => \( my $append = 0 ),
 );
 
 if ( !$parse_options_ok ) {
@@ -36,6 +38,8 @@ elsif($append) {
 else {
     my $liveman = Liveman->new(
         files => \@ARGV,
+        options => $options,
+        prove => $prove,
         open => $open,
         compile_force => $compile_force,
     );
@@ -101,6 +105,22 @@ Version 0.01
 =item B<-f>, B<--force>
 
 Трансформировать файлы lib/**.md даже если они не изменились.
+
+=item B<-p>, B<--prove>
+
+Запустить тесты в prove, а не yath.
+
+=item B<-o> OPTIONS, B<--options> OPTIONS
+
+Передать строку с опциями в yath или prove. Эти опции добавятся к опциям по умолчанию.
+
+Опции по умолчанию у yath:
+
+    yath test -j4 --cover
+
+Опции по умолчанию у prove:
+
+    prove -Ilib -r t
 
 =item B<-а>, B<--append>
 

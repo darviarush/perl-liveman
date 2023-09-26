@@ -20,7 +20,7 @@ Test:
 ```perl
 use Liveman;
 
-my $liveman = Liveman->new;
+my $liveman = Liveman->new(prove => 1);
 
 # compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
 $liveman->transform("lib/Example.md");
@@ -203,9 +203,13 @@ Tests `t/**.t`-files.
 
 All if `$self->{files}` is empty, or `$self->{files}` only.
 
+## mkmd ($md)
+
+It make md-file.
+
 ## appends ()
 
-Append 
+Append to `lib/**.md` from `lib/**.pm` subroutines and features.
 
 ## append ($path)
 
@@ -259,13 +263,11 @@ File lib/Alt/The/Plan.md is:
 
 Alt::The::Plan - 
 
-# VERSION
-
-0.0.0-prealpha
-
 # SYNOPSIS
 
 \```perl
+use Alt::The::Plan;
+
 my $alt_the_plan = Alt::The::Plan->new;
 \```
 
@@ -297,7 +299,7 @@ $alt_the_plan->planner  # -> .3
 
 For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
 
-\```
+\```sh
 sudo cpm install -gvv Alt::The::Plan
 \```
 

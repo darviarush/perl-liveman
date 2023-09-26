@@ -105,7 +105,9 @@ sub append {
 
     my $added = 0;
 
-    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION ) .*? (?= ^\#\s) }{
+    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION )
+        (^```.*?^```|.)*? (?= ^\#\s)
+    }{
         my $x = $&; my $is = $+{is};
         if($is) {
             while($x =~ /^\#\#[\ \t]+(\w+)/gm) {
@@ -116,7 +118,9 @@ sub append {
         join "", $x, $is? (): "# SUBROUTINES/METHODS\n\n", map { _md_method $pkg, $_, $sub{$_}{args}, $sub{$_}{remark} } sort keys %sub;
     }emsx or die "Нет секции DESCRIPTION!" if keys %sub;
 
-    s{^\#[\ \t]+((?<is>FEATURES) | DESCRIPTION) .*? (?= ^\#\s) }{
+    s{^\#[\ \t]+((?<is>FEATURES) | DESCRIPTION) 
+        (^```.*?^```|.)*? (?= ^\#\s)
+    }{
         my $x = $&; my $is = $+{is};
         if($is) {
             while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/gm) {
@@ -130,7 +134,7 @@ sub append {
 
     if ($added) {
         write_text $md, $_;
-        print "🔖 $pm ", colored("⊂", "BRIGHT_WHITE"), " $md ", "\n",
+        print "🔖 $pm ", colored("⊂", "BRIGHT_GREEN"), " $md ", "\n",
             "  ", scalar keys %has? (colored("FEATURES ", "BRIGHT_WHITE"), join(colored(", ", "red"), sort keys %has), "\n"): (),
             "  ", scalar keys %sub? (colored("SUBROUTINES ", "BRIGHT_WHITE"), join(colored(", ", "red"), sort keys %sub), "\n"): (),
         ;
@@ -166,13 +170,11 @@ sub mkmd {
 
 $pkg - 
 
-# VERSION
-
-0.0.0-prealpha
-
 # SYNOPSIS
 
 ```perl
+use $pkg;
+
 my ${\_var $pkg} = $pkg->new;
 ```
 
@@ -186,7 +188,7 @@ my ${\_var $pkg} = $pkg->new;
 
 For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
 
-```
+```sh
 sudo cpm install -gvv $pkg
 ```
 
@@ -367,10 +369,12 @@ sub transform {
     my $write_files = q{open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\\@> (.*)\n((#>> .*\n)*)#\\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; }};
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
-    my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
-    my $chdir = "my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\";";
+    my $test_path = join "", "/tmp/.liveman/",
+        `pwd` =~ s/^.*?([^\/]+)\n$/$1/rs,
+        $test =~ s!^t/(.*)\.t$!/$1!r =~ y/\//!/r, "/";
+    my $chdir = "my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr '\$s'` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\";";
     # use Carp::Always::Color ::Term;
-    my $die = 'use Scalar::Util qw//; use Carp qw//; BEGIN { $SIG{__DIE__} = sub { my ($s) = @_; if(ref $s) { $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s; die $s } else {die Carp::longmess defined($s)? $s: "undef" }}};';
+    my $die = 'use Scalar::Util qw//; use Carp qw//; $SIG{__DIE__} = sub { my ($s) = @_; if(ref $s) { $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s; die $s } else {die Carp::longmess defined($s)? $s: "undef" }};';
     write_text $test, join "", "use common::sense; use open qw/:std :utf8/; use Test::More 0.98; $mkpath BEGIN { $die $chdir $write_files } ", @test;
 
     # Создаём модуль, если его нет
@@ -407,18 +411,30 @@ sub tests {
     my $yath = "/usr/bin/site_perl/yath";
     $yath = 'yath' if !-e $yath;
 
+    my $options = $self->{options};
 
     if($self->{files}) {
         my @tests = map $self->test_path($_), @{$self->{files}};
         local $, = " ";
-        $self->{exit_code} = system "$yath test -j4 @tests";
+        $self->{exit_code} = system $self->{prove}
+            ? "prove -Ilib $options @tests"
+            : "$yath test -j4 $options @tests";
         return $self;
     }
 
+    my $perl5opt = $ENV{PERL5OPT};
+
     system "$cover -delete";
-    $self->{exit_code} = system "$yath test -j4 --cover" and return $self;
+    if($self->{prove}) {
+        #local $ENV{PERL5OPT} = "$perl5opt -MDevel::Cover";
+        #$self->{exit_code} = system "env | grep PERL5OPT; prove -Ilib -r t $options";
+        $self->{exit_code} = system "prove --exec 'perl -MDevel::Cover -I`pwd`/lib' -r t";
+    } else {
+        $self->{exit_code} = system "$yath test -j4 --cover $options";
+    }
+    return $self if $self->{exit_code};
     system "$cover -report html_basic";
-    system "opera cover_db/coverage.html || xdg-open cover_db/coverage.html" if $self->{open};
+    system "(opera cover_db/coverage.html || xdg-open cover_db/coverage.html) &> /dev/null" if $self->{open};
     return $self;
 }
 
@@ -449,7 +465,7 @@ Test:
 
 	use Liveman;
 	
-	my $liveman = Liveman->new;
+	my $liveman = Liveman->new(prove => 1);
 	
 	# compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
 	$liveman->transform("lib/Example.md");
@@ -620,9 +636,13 @@ Tests C<t/**.t>-files.
 
 All if C<< $self-E<gt>{files} >> is empty, or C<< $self-E<gt>{files} >> only.
 
+=head2 mkmd ($md)
+
+It make md-file.
+
 =head2 appends ()
 
-Append 
+Append to C<lib/**.md> from C<lib/**.pm> subroutines and features.
 
 =head2 append ($path)
 
@@ -675,13 +695,11 @@ File lib/Alt/The/Plan.md is:
 	
 	Alt::The::Plan - 
 	
-	# VERSION
-	
-	0.0.0-prealpha
-	
 	# SYNOPSIS
 	
 	\```perl
+	use Alt::The::Plan;
+	
 	my $alt_the_plan = Alt::The::Plan->new;
 	\```
 	
@@ -713,7 +731,7 @@ File lib/Alt/The/Plan.md is:
 	
 	For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
 	
-	\```
+	\```sh
 	sudo cpm install -gvv Alt::The::Plan
 	\```
 	
