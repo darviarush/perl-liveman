@@ -1,4 +1,4 @@
-use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
+use common::sense; use open qw/:std :utf8/; use Test::More 0.98; sub _mkpath_ { my ($p) = @_; length($`) && !-e $`? mkdir($`, 0755) || die "mkdir $`: $!": () while $p =~ m!/!g; $p } BEGIN { use Scalar::Util qw//; use Carp qw//; BEGIN { $SIG{__DIE__} = sub { my ($s) = @_; if(ref $s) { $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s; die $s } else {die Carp::longmess defined($s)? $s: "undef" }}}; my $t = `pwd`; chop $t; $t .= '/' . __FILE__; my $s = '/tmp/.liveman/perl-liveman/liveman/'; `rm -fr $s` if -e $s; chdir _mkpath_($s) or die "chdir $s: $!"; open my $__f__, "<:utf8", $t or die "Read $t: $!"; read $__f__, $s, -s $__f__; close $__f__; while($s =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { my ($file, $code) = ($1, $2); $code =~ s/^#>> //mg; open my $__f__, ">:utf8", _mkpath_($file) or die "Write $file: $!"; print $__f__ $code; close $__f__; } } # # NAME
 # 
 # Liveman - markdown compiller to test and pod.
 # 
@@ -234,16 +234,23 @@ Twice two:
 done_testing; }; subtest 'append ($path)' => sub { 
 ::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{undef}, '-e "lib/Alt/The/Plan.md" # -> undef';
 
+# Set the mocks:
 *Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
 *Liveman::_git_user_email = sub {'dart@cpan.org'};
 *Liveman::_year = sub {2023};
 *Liveman::_license = sub {"Perl5"};
 *Liveman::_land = sub {"Rusland"};
 
-my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+my $liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
 ::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
+::is scalar do {$liveman->{added}}, scalar do{2}, '$liveman->{added}	# -> 2';
 
 ::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{1}, '-e "lib/Alt/The/Plan.md" # -> 1';
+
+# And again:
+$liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
+::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
+::is scalar do {$liveman->{added}}, scalar do{0}, '$liveman->{added}	# -> 0';
 
 # 
 # File lib/Alt/The/Plan.md is:
@@ -326,13 +333,18 @@ The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All
 # $ sudo cpm install -gvv
 
 # 
+# # AUTHOR
+# 
+# Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+# 
 # # LICENSE
 # 
 # ⚖ **GPLv3**
 # 
-# # AUTHOR
+# # COPYRIGHT
 # 
-# Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+# The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
+
 	done_testing;
 };
 

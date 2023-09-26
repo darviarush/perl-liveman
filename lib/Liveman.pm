@@ -105,25 +105,25 @@ sub append {
 
     my $added = 0;
 
-    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION .*? \n\#\s ) .*? (?= ^\#\s) }{
+    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION ) .*? (?= ^\#\s) }{
         my $x = $&; my $is = $+{is};
-        while($x =~ /^\#\#[\ \t]+(\w+)/g) {
-            delete $sub{$1};
+        if($is) {
+            while($x =~ /^\#\#[\ \t]+(\w+)/gm) {
+                delete $sub{$1};
+            }
         }
-
         $added += keys %sub;
         join "", $x, $is? (): "# SUBROUTINES/METHODS\n\n", map { _md_method $pkg, $_, $sub{$_}{args}, $sub{$_}{remark} } sort keys %sub;
     }emsx or die "Нет секции DESCRIPTION!" if keys %sub;
 
-    s{^\#[\ \t]+(FEATURES | DESCRIPTION .*? \n\#\s) .*? (?= ^\#\s) }{
+    s{^\#[\ \t]+((?<is>FEATURES) | DESCRIPTION) .*? (?= ^\#\s) }{
         my $x = $&; my $is = $+{is};
-
-        while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/g) {
-            delete $has{$1};
+        if($is) {
+            while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/gm) {
+                delete $has{$1};
+            }
         }
-
         $added += keys %has;
-
         join "", $x, $is? (): "# FEATURES\n\n", map { _md_feature $pkg, $_, $sub{$_}{remark} } sort keys %has;
     }emsx or die "Нет секции DESCRIPTION!" if keys %has;
 
@@ -139,6 +139,7 @@ sub append {
     }
 
     $self->{count}++;
+    $self->{added} = $added;
     $self
 }
 
@@ -367,8 +368,10 @@ sub transform {
     #my @symbol = ('a'..'z', 'A'..'Z', '0' .. '9', '-', '_');
     # "-" . join("", map $symbol[rand(scalar @symbol)], 1..6)
     my $test_path = "/tmp/.liveman/" . (`pwd` =~ s/^.*?([^\/]+)\n$/$1/rs) . ($test =~ s!^t/(.*)\.t$!/$1/!r);
-    my $chdir = "BEGIN { my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\"; $write_files }";
-    write_text $test, join "", "use common::sense; use open qw/:std :utf8/; use Test::More 0.98; use Carp::Always::Color; $mkpath $chdir ", @test;
+    my $chdir = "my \$t = `pwd`; chop \$t; \$t .= '/' . __FILE__; my \$s = '${\ _q_esc($test_path)}'; `rm -fr \$s` if -e \$s; chdir _mkpath_(\$s) or die \"chdir \$s: \$!\";";
+    # use Carp::Always::Color ::Term;
+    my $die = 'use Scalar::Util qw//; use Carp qw//; BEGIN { $SIG{__DIE__} = sub { my ($s) = @_; if(ref $s) { $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s; die $s } else {die Carp::longmess defined($s)? $s: "undef" }}};';
+    write_text $test, join "", "use common::sense; use open qw/:std :utf8/; use Test::More 0.98; $mkpath BEGIN { $die $chdir $write_files } ", @test;
 
     # Создаём модуль, если его нет
     my $pm = $md =~ s/\.md$/.pm/r;
@@ -648,16 +651,23 @@ File lib/Alt/The/Plan.pm:
 
 	-e "lib/Alt/The/Plan.md" # -> undef
 	
+	# Set the mocks:
 	*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
 	*Liveman::_git_user_email = sub {'dart@cpan.org'};
 	*Liveman::_year = sub {2023};
 	*Liveman::_license = sub {"Perl5"};
 	*Liveman::_land = sub {"Rusland"};
 	
-	my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+	my $liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
 	$liveman->{count}	# -> 1
+	$liveman->{added}	# -> 2
 	
 	-e "lib/Alt/The/Plan.md" # -> 1
+	
+	# And again:
+	$liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
+	$liveman->{count}	# -> 1
+	$liveman->{added}	# -> 0
 
 File lib/Alt/The/Plan.md is:
 
@@ -734,10 +744,14 @@ And run command:
 
 	$ sudo cpm install -gvv
 
+=head1 AUTHOR
+
+Yaroslav O. Kosmina LL<mailto:dart@cpan.org>
+
 =head1 LICENSE
 
 ⚖ B<GPLv3>
 
-=head1 AUTHOR
+=head1 COPYRIGHT
 
-Yaroslav O. Kosmina LL<mailto:dart@cpan.org>
+The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.

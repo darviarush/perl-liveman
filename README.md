@@ -234,16 +234,23 @@ sub _exquise_me {
 ```perl
 -e "lib/Alt/The/Plan.md" # -> undef
 
+# Set the mocks:
 *Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
 *Liveman::_git_user_email = sub {'dart@cpan.org'};
 *Liveman::_year = sub {2023};
 *Liveman::_license = sub {"Perl5"};
 *Liveman::_land = sub {"Rusland"};
 
-my $liveman = Liveman->new->append("lib/Alt/The/Plan.md");
+my $liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
 $liveman->{count}	# -> 1
+$liveman->{added}	# -> 2
 
 -e "lib/Alt/The/Plan.md" # -> 1
+
+# And again:
+$liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
+$liveman->{count}	# -> 1
+$liveman->{added}	# -> 0
 ```
 
 File lib/Alt/The/Plan.md is:
@@ -326,10 +333,14 @@ And run command:
 $ sudo cpm install -gvv
 ```
 
+# AUTHOR
+
+Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+
 # LICENSE
 
 ⚖ **GPLv3**
 
-# AUTHOR
+# COPYRIGHT
 
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
