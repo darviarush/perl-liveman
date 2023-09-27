@@ -2,7 +2,7 @@ package Liveman;
 use 5.008001;
 use common::sense;
 
-our $VERSION = "0.05";
+our $VERSION = "0.06";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -391,7 +391,7 @@ sub transform {
 
     # Меняем версию:
     my ($version) = $markdown =~ /#[ \t]+VERSION\s+([\d\.]+)\s/;
-    $module =~ s!^(our \$VERSION = ")[^"]*(";)!$1$version$2!m if defined $version;
+    $module =~ s!^(our \$VERSION = ")[^"]*(";)!$0.06$version$2!m if defined $version;
     write_text $pm, $module;
 
     $self->{count}++;
@@ -426,9 +426,9 @@ sub tests {
 
     system "$cover -delete";
     if($self->{prove}) {
-        #local $ENV{PERL5OPT} = "$perl5opt -MDevel::Cover";
-        #$self->{exit_code} = system "env | grep PERL5OPT; prove -Ilib -r t $options";
-        $self->{exit_code} = system "prove --exec 'perl -MDevel::Cover -I`pwd`/lib' -r t";
+        local $ENV{PERL5OPT} = "$perl5opt -MDevel::Cover";
+        $self->{exit_code} = system "env | grep PERL5OPT; prove -Ilib -r t $options";
+        #$self->{exit_code} = system "prove --exec 'echo `pwd`/lib && perl -MDevel::Cover -I`pwd`/lib' -r t";
     } else {
         $self->{exit_code} = system "$yath test -j4 --cover $options";
     }

@@ -1,6 +1,6 @@
 name = "Liveman"
 
-#markdown_maker = "Liveman::MinillaPod2Markdown"
+markdown_maker = "Liveman::MinillaPod2Markdown"
 
 #badges = ["github-actions/test.yml"]
 
