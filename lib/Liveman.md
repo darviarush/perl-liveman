@@ -4,7 +4,7 @@ Liveman - markdown compiller to test and pod.
 
 # VERSION
 
-0.05
+0.07
 
 # SYNOPSIS
 
