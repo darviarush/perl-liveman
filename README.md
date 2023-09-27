@@ -1,6 +1,6 @@
 # NAME
 
-Liveman - markdown compiller to test and pod.
+Liveman - markdown compiller to test and pod
 
 # VERSION
 
