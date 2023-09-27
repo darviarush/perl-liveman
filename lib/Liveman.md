@@ -191,6 +191,8 @@ Twice two:
 
 ```
 
+File `lib/Example.pm` was created from file `lib/Example.md` described in section `SINOPSIS` in this document.
+
 ## transforms ()
 
 Compile `lib/**.md`-files to `t/**.t`-files.
