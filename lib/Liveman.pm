@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "0.07";
+our $VERSION = "0.7";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -450,7 +450,7 @@ Liveman - markdown compiller to test and pod.
 
 =head1 VERSION
 
-0.05
+0.7
 
 =head1 SYNOPSIS
 
@@ -583,7 +583,7 @@ Prefixes maybe on russan: C<Файл path:> and C<Файл path является
 
 =head1 METHODS
 
-=head2 new (files=>[...], open => 1, force_compile => 1)
+=head2 new (%param)
 
 Constructor. Has arguments:
 
@@ -594,6 +594,10 @@ Constructor. Has arguments:
 =item 2. C<open> (boolean) — open coverage in browser. If is B<opera> browser — open in it. Else — open via C<xdg-open>.
 
 =item 3. C<force_compile> (boolean) — do not check the md-files modification time.
+
+=item 4. C<options> — add options in command line to yath or prove.
+
+=item 5. C<prove> — use prove, but use'nt yath.
 
 =back
 
@@ -623,6 +627,8 @@ File lib/Example.pm is:
 	
 		2*2  # -> 2+2
 	
+
+File C<lib/Example.pm> was created from file C<lib/Example.md> described in section C<SINOPSIS> in this document.
 
 =head2 transforms ()
 
