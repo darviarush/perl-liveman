@@ -4,7 +4,7 @@ use common::sense; use open qw/:std :utf8/; use Test::More 0.98; sub _mkpath_ { 
 # 
 # # VERSION
 # 
-# 0.7
+# 0.8
 # 
 # # SYNOPSIS
 # 

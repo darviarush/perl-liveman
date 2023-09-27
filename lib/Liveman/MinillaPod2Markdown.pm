@@ -24,10 +24,7 @@ sub as_markdown {
     my ($md_version) = $md =~ /^#[ \t]+$v\s+([\w.-]{1,32})\s/m;
     my ($pm_version) = $pm =~ /^our\s+\$$v\s*=\s*["']?([\w.-]{1,32})/m;
 
-    print STDERR "pm_version: $pm_version\n";
-    print STDERR "md_version: $md_version\n";
-
-    if($pm_version and $pm_version ne $md_version) {
+    if(defined $pm_version and defined $md_version and $pm_version ne $md_version) {
         $md =~ s/(#[ \t]+$v\s+)([\w.-]{1,32})(\s)/$1$pm_version$3/;
         write_text $self->{path}, $md;
     }
