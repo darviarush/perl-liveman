@@ -11,7 +11,9 @@ my $mark = Liveman::MinillaPod2Markdown->new;
 
 ::is scalar do {$mark->isa("Pod::Markdown")}, scalar do{1}, '$mark->isa("Pod::Markdown")  # -> 1';
 
-open my $f, ">", "X.md" or die "X.md: $!"; print $f "hi!"; close $f;
+use File::Slurper qw/write_text/;
+write_text "X.md", "hi!";
+write_text "X.pm", "our \$VERSION = 1.0;";
 
 $mark->parse_from_file("X.pm");
 ::is scalar do {$mark->{path}}, "X.md", '$mark->{path}  # => X.md';
@@ -47,7 +49,7 @@ $mark->parse_from_file("X.pm");
 # 
 # # AUTHOR
 # 
-# Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+# Yaroslav O. Kosmina [dart@cpan.org](dart@cpan.org)
 # 
 # # LICENSE
 # 

@@ -3,20 +3,36 @@ package Liveman::MinillaPod2Markdown;
 
 use parent qw/Pod::Markdown/;
 
+use File::Slurper qw/read_text write_text/;
+
 sub new { bless {}, __PACKAGE__ }
 
 sub parse_from_file {
     my ($self, $path) = @_;
+    $self->{pm_path} = $path;
     $self->{path} = $path =~ s!\.pm$!.md!r;
     $self
 }
 
 sub as_markdown {
     my ($self) = @_;
-    open my $f, "<:utf8", $self->{path} or die "Not open file $self->{path}!";
-    read $f, my $buf, -s $f;
-    close $f;
-    $buf
+
+    my $md = read_text $self->{path};
+    my $pm = read_text $self->{pm_path};
+
+    my $v = uc "version";
+    my ($md_version) = $md =~ /^#[ \t]+$v\s+([\w.-]{1,32})\s/m;
+    my ($pm_version) = $pm =~ /^our\s+\$$v\s*=\s*["']?([\w.-]{1,32})/m;
+
+    print STDERR "pm_version: $pm_version\n";
+    print STDERR "md_version: $md_version\n";
+
+    if($pm_version and $pm_version ne $md_version) {
+        $md =~ s/(#[ \t]+$v\s+)([\w.-]{1,32})(\s)/$1$pm_version$3/;
+        write_text $self->{path}, $md;
+    }
+
+    $md
 }
 
 1;
@@ -37,7 +53,9 @@ Liveman::MinillaPod2Markdown - bung for Minilla. It not make README.md
 	
 	$mark->isa("Pod::Markdown")  # -> 1
 	
-	open my $f, ">", "X.md" or die "X.md: $!"; print $f "hi!"; close $f;
+	use File::Slurper qw/write_text/;
+	write_text "X.md", "hi!";
+	write_text "X.pm", "our \$VERSION = 1.0;";
 	
 	$mark->parse_from_file("X.pm");
 	$mark->{path}  # => X.md
@@ -70,7 +88,7 @@ For install this module in your system run next LL<https://metacpan.org/pod/App:
 
 =head1 AUTHOR
 
-Yaroslav O. Kosmina LL<mailto:darviarush@mail.ru>
+Yaroslav O. Kosmina LL<mailto:dart@cpan.org>
 
 =head1 LICENSE
 

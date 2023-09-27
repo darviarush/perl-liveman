@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "0.7";
+our $VERSION = "0.8";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -390,8 +390,9 @@ sub transform {
     $module =~ s!(\s*\n__END__[\t ]*\n.*)?$!\n\n__END__\n\n=encoding utf-8\n\n$pod!sn;
 
     # Меняем версию:
-    my ($version) = $markdown =~ /#[ \t]+VERSION\s+([\d\.]+)\s/;
-    $module =~ s!^(our \$VERSION = ")[^"]*(";)!$0.07$version$2!m if defined $version;
+    my $v = uc "version";
+    my ($version) = $markdown =~ /^#[ \t]+$v\s+([\w\.-]{1,32})\s/m;
+    $module =~ s!^(our\s*\$$v\s*=\s*)["']?[\w.-]{1,32}["']?!$1"$version"!m if defined $version;
     write_text $pm, $module;
 
     $self->{count}++;

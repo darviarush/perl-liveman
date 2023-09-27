@@ -1,10 +1,11 @@
+[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions)
 # NAME
 
-Liveman - markdown compiller to test and pod
+Liveman - markdown compiller to test and pod.
 
 # VERSION
 
-0.7
+0.8
 
 # SYNOPSIS
 
