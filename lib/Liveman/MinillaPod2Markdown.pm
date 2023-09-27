@@ -23,10 +23,16 @@ sub as_markdown {
     my $v = uc "version";
     my ($md_version) = $md =~ /^#[ \t]+$v\s+([\w.-]{1,32})\s/m;
     my ($pm_version) = $pm =~ /^our\s+\$$v\s*=\s*["']?([\w.-]{1,32})/m;
+    my ($hd_version) = $pm =~ /^=head1[ \t]+VERSION\s+([\w.-]{1,32})\s/m;
 
     if(defined $pm_version and defined $md_version and $pm_version ne $md_version) {
-        $md =~ s/(#[ \t]+$v\s+)([\w.-]{1,32})(\s)/$1$pm_version$3/;
+        $md =~ s/(#[ \t]+$v\s+)[\w.-]{1,32}(\s)/$1$pm_version$2/;
         write_text $self->{path}, $md;
+    }
+
+    if(defined $pm_version and defined $hd_version and $pm_version ne $hd_version) {
+        $pm =~ s/^(=head1[ \t]+VERSION\s+)[\w.-]{1,32}(\s)/$1$pm_version$2/m;
+        write_text $self->{pm_path}, $pm;
     }
 
     $md
