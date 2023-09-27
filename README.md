@@ -1,3 +1,4 @@
+[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions)
 # NAME
 
 Liveman - markdown compiller to test and pod.
@@ -153,13 +154,15 @@ Prefixes maybe on russan: `Файл path:` and `Файл path является:`
 
 # METHODS
 
-## new (files=>[...], open => 1, force_compile => 1)
+## new (%param)
 
 Constructor. Has arguments:
 
 1. `files` (array_ref) — list of md-files for methods `transforms` and `tests`.
 1. `open` (boolean) — open coverage in browser. If is **opera** browser — open in it. Else — open via `xdg-open`.
 1. `force_compile` (boolean) — do not check the md-files modification time.
+1. `options` — add options in command line to yath or prove.
+1. `prove` — use prove, but use'nt yath.
 
 ## test_path ($md_path)
 
@@ -190,6 +193,8 @@ Twice two:
 	2*2  # -> 2+2
 
 ```
+
+File `lib/Example.pm` was created from file `lib/Example.md` described in section `SINOPSIS` in this document.
 
 ## transforms ()
 

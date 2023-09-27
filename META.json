@@ -53,7 +53,7 @@
             "Term::ANSIColor" : "5.01",
             "Test::More" : "0.98",
             "common::sense" : "3.75",
-            "perl" : "5.008001"
+            "perl" : "v5.22.0"
          }
       }
    },
@@ -69,7 +69,7 @@
          "web" : "https://github.com/darviarush/perl-liveman"
       }
    },
-   "version" : "0.06",
+   "version" : "0.07",
    "x_authority" : "cpan:DART",
    "x_contributors" : [
       "Yaroslav O. Kosmina <dart@cpan.org>",

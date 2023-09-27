@@ -2,6 +2,10 @@ Revision history for Perl extension Liveman
 
 {{$NEXT}}
 
+0.07 2023-09-27T14:49:32Z
+
+    - set minimal version of perl!
+
 0.06 2023-09-27T11:57:06Z
 
     - first release
