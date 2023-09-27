@@ -47,7 +47,7 @@ sudo cpm install -gvv Liveman::MinillaPod2Markdown
 
 # AUTHOR
 
-Yaroslav O. Kosmina [darviarush@mail.ru](mailto:darviarush@mail.ru)
+Yaroslav O. Kosmina [dart@cpan.org](dart@cpan.org)
 
 # LICENSE
 
