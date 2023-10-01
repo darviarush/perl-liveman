@@ -320,25 +320,6 @@ Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
 The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 ```
 
-# INSTALL
-
-Add to **cpanfile** in your project:
-
-```cpanfile
-on 'test' => sub {
-	requires 'Liveman', 
-		git => 'https://github.com/darviarush/perl-liveman.git',
-		ref => 'master',
-	;
-};
-```
-
-And run command:
-
-```sh
-$ sudo cpm install -gvv
-```
-
 # AUTHOR
 
 Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
@@ -349,4 +330,4 @@ Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
 
 # COPYRIGHT
 
-The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
+The Liveman module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
