@@ -14,3 +14,4 @@ requires 'Pod::Markdown';
 requires 'Template', '3.101';
 requires 'Term::ANSIColor', '5.01';
 requires 'Test::More', '0.98';
+requires 'Text::Trim';

@@ -4,7 +4,7 @@ use common::sense; use open qw/:std :utf8/; use Test::More 0.98; sub _mkpath_ { 
 # 
 # # VERSION
 # 
-# 0.9.1
+# 1.0
 # 
 # # SYNOPSIS
 # 
@@ -207,138 +207,6 @@ Twice two:
 # 
 # All if `$self->{files}` is empty, or `$self->{files}` only.
 # 
-# ## mkmd ($md)
-# 
-# It make md-file.
-# 
-# ## appends ()
-# 
-# Append to `lib/**.md` from `lib/**.pm` subroutines and features.
-# 
-# ## append ($path)
-# 
-# Append subroutines and features from the module with `$path` into its documentation in the its sections.
-# 
-# File lib/Alt/The/Plan.pm:
-#@> lib/Alt/The/Plan.pm
-#>> package Alt::The::Plan;
-#>> 
-#>> sub planner {
-#>> 	my ($self) = @_;
-#>> }
-#>> 
-#>> # This is first!
-#>> sub miting {
-#>> 	my ($self, $meet, $man, $woman) = @_;
-#>> }
-#>> 
-#>> sub _exquise_me {
-#>> 	my ($self, $meet, $man, $woman) = @_;
-#>> }
-#>> 
-#>> 1;
-#@< EOF
-# 
-done_testing; }; subtest 'append ($path)' => sub { 
-::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{undef}, '-e "lib/Alt/The/Plan.md" # -> undef';
-
-# Set the mocks:
-*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
-*Liveman::_git_user_email = sub {'dart@cpan.org'};
-*Liveman::_year = sub {2023};
-*Liveman::_license = sub {"Perl5"};
-*Liveman::_land = sub {"Rusland"};
-
-my $liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
-::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
-::is scalar do {$liveman->{added}}, scalar do{2}, '$liveman->{added}	# -> 2';
-
-::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{1}, '-e "lib/Alt/The/Plan.md" # -> 1';
-
-# And again:
-$liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
-::is scalar do {$liveman->{count}}, scalar do{1}, '$liveman->{count}	# -> 1';
-::is scalar do {$liveman->{added}}, scalar do{0}, '$liveman->{added}	# -> 0';
-
-# 
-# File lib/Alt/The/Plan.md is:
-
-{ my $s = 'lib/Alt/The/Plan.md'; open my $__f__, '<:utf8', $s or die "Read $s: $!"; my $n = join '', <$__f__>; close $__f__; ::is $n, '# NAME
-
-Alt::The::Plan - 
-
-# SYNOPSIS
-
-```perl
-use Alt::The::Plan;
-
-my $alt_the_plan = Alt::The::Plan->new;
-```
-
-# DESCRIPION
-
-.
-
-# SUBROUTINES
-
-## miting ($meet, $man, $woman)
-
-This is first!
-
-```perl
-my $alt_the_plan = Alt::The::Plan->new;
-$alt_the_plan->miting($meet, $man, $woman)  # -> .3
-```
-
-## planner ()
-
-.
-
-```perl
-my $alt_the_plan = Alt::The::Plan->new;
-$alt_the_plan->planner  # -> .3
-```
-
-# INSTALL
-
-For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
-
-```sh
-sudo cpm install -gvv Alt::The::Plan
-```
-
-# AUTHOR
-
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
-
-# LICENSE
-
-⚖ **Perl5**
-
-# COPYRIGHT
-
-The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
-', "File $s"; }
-# 
-# # INSTALL
-# 
-# Add to **cpanfile** in your project:
-# 
-
-# on 'test' => sub {
-# 	requires 'Liveman', 
-# 		git => 'https://github.com/darviarush/perl-liveman.git',
-# 		ref => 'master',
-# 	;
-# };
-
-# 
-# And run command:
-# 
-
-# $ sudo cpm install -gvv
-
-# 
 # # AUTHOR
 # 
 # Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
@@ -349,7 +217,7 @@ The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All
 # 
 # # COPYRIGHT
 # 
-# The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
+# The Liveman module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
 	done_testing;
 };

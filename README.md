@@ -1,4 +1,3 @@
-[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions)
 # NAME
 
 Liveman - markdown compiller to test and pod.
@@ -208,138 +207,6 @@ Tests `t/**.t`-files.
 
 All if `$self->{files}` is empty, or `$self->{files}` only.
 
-## mkmd ($md)
-
-It make md-file.
-
-## appends ()
-
-Append to `lib/**.md` from `lib/**.pm` subroutines and features.
-
-## append ($path)
-
-Append subroutines and features from the module with `$path` into its documentation in the its sections.
-
-File lib/Alt/The/Plan.pm:
-```perl
-package Alt::The::Plan;
-
-sub planner {
-	my ($self) = @_;
-}
-
-# This is first!
-sub miting {
-	my ($self, $meet, $man, $woman) = @_;
-}
-
-sub _exquise_me {
-	my ($self, $meet, $man, $woman) = @_;
-}
-
-1;
-```
-
-```perl
--e "lib/Alt/The/Plan.md" # -> undef
-
-# Set the mocks:
-*Liveman::_git_user_name = sub {'Yaroslav O. Kosmina'};
-*Liveman::_git_user_email = sub {'dart@cpan.org'};
-*Liveman::_year = sub {2023};
-*Liveman::_license = sub {"Perl5"};
-*Liveman::_land = sub {"Rusland"};
-
-my $liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
-$liveman->{count}	# -> 1
-$liveman->{added}	# -> 2
-
--e "lib/Alt/The/Plan.md" # -> 1
-
-# And again:
-$liveman = Liveman->new->append("lib/Alt/The/Plan.pm");
-$liveman->{count}	# -> 1
-$liveman->{added}	# -> 0
-```
-
-File lib/Alt/The/Plan.md is:
-```markdown
-# NAME
-
-Alt::The::Plan - 
-
-# SYNOPSIS
-
-\```perl
-use Alt::The::Plan;
-
-my $alt_the_plan = Alt::The::Plan->new;
-\```
-
-# DESCRIPION
-
-.
-
-# SUBROUTINES
-
-## miting ($meet, $man, $woman)
-
-This is first!
-
-\```perl
-my $alt_the_plan = Alt::The::Plan->new;
-$alt_the_plan->miting($meet, $man, $woman)  # -> .3
-\```
-
-## planner ()
-
-.
-
-\```perl
-my $alt_the_plan = Alt::The::Plan->new;
-$alt_the_plan->planner  # -> .3
-\```
-
-# INSTALL
-
-For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
-
-\```sh
-sudo cpm install -gvv Alt::The::Plan
-\```
-
-# AUTHOR
-
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
-
-# LICENSE
-
-⚖ **Perl5**
-
-# COPYRIGHT
-
-The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
-```
-
-# INSTALL
-
-Add to **cpanfile** in your project:
-
-```cpanfile
-on 'test' => sub {
-	requires 'Liveman', 
-		git => 'https://github.com/darviarush/perl-liveman.git',
-		ref => 'master',
-	;
-};
-```
-
-And run command:
-
-```sh
-$ sudo cpm install -gvv
-```
-
 # AUTHOR
 
 Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
@@ -350,4 +217,4 @@ Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
 
 # COPYRIGHT
 
-The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
+The Liveman module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
