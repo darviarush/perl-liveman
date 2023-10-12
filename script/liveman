@@ -17,6 +17,7 @@ my $parse_options_ok = GetOptions(
     'c|compile!'  => \( my $compile_only = 0 ),
     'f|force!'    => \( my $compile_force = 0 ),
     'a|append!'   => \( my $append = 0 ),
+    'A|new!'      => \( my $project = 0 ),
 );
 
 if ( !$parse_options_ok ) {
@@ -30,6 +31,11 @@ elsif ($help) {
 }
 elsif ($man) {
     pod2usage( -exitval => 0, -verbose => 2 );
+}
+elsif($project) {
+    require Liveman::Project;
+    Liveman::Project->new(pkg => $ARGV[0], license => $ARGV[1])->make;
+    exit 0;
 }
 elsif($append) {
     require Liveman::Append;
@@ -55,33 +61,31 @@ __END__
 
 =head1 NAME
 
-B<liveman> - "живой мануал". Утилита для преобразования B<lib/**.md>-файлов в файлы тестов (B<t/**.t>) и документацию (B<POD>), которая помещается в соответствующий модуль B<lib/**.pm>
+B<liveman> - "living manual". A utility for converting B<lib/**.md> files into test files (B<t/**.t>) and documentation (B<POD>), which is placed in the corresponding module (B<lib/**.pm>).
 
 =head1 VERSION
 
-Version 1.0
+Version 1.1
 
 =head1 SYNOPSIS
 
-    liveman [-h] [--man] [-o][-c][-f][-s] [<files> ...]
+    liveman [-h] [--man] [-A pkg] [-o][-c][-f][-s][-a] [<files> ...]
 
 =head1 DESCRIPTION
 
-Проблема современных проектов в том, что документация оторвана от тестирования.
-Это означает, что примеры в документации могут быть нерабочими, а сама документация — отставать от кода.
+The problem with modern projects is that, who documentation is divorced from testing.
+This means, that the examples in the documentation may not work, and the documentation itself may lag behind the code.
 
-Метод одновременного документирования и тестирования решает данную проблему.
+The method of simultaneous documentation and testing solves this problem.
 
-Для документирования выбран формат md, как наиболее лёгкий для ввода и широкораспространённый. 
-Секции кода B<perl>, описанные в нём, транслируются в тест. А докуметация транслируется в B<POD> и добавляется в секцию B<__END__> модуля perl.
+The md format was chosen for documentation as it is the easiest to enter and widely used.
+The sections of B<perl> code described in it are translated into the test. And the documentation is translated into B<POD> and added to the B<__END__> section of the perl module.
 
-Другими словами B<liveman> преобразует B<lib/**.md>-файлы в файлы тестов (B<t/**.t>) и документацию, которая помещается в соответствующий модуль B<lib/**.pm>. 
-И сразу же запускает тесты с покрытием.
+In other words, B<liveman> converts B<lib/**.md>-files into test files (B<t/**.t>) and documentation, which is placed in the corresponding B<lib/**.pm> module. And immediately runs tests with coverage.
 
-Покрытие можно посмотреть в файле cover_db/coverage.html.
+The coverage can be viewed in the file cover_db/coverage.html.
 
-Примечание: в B<.gitignore> лучше сразу же поместить B<cover_db/>.
-
+Note: it is better to immediately place B<cover_db/> in B<.gitignore>.
 
 =head1 OPTIONS
 
@@ -89,43 +93,49 @@ Version 1.0
 
 =item B<-h>, B<--help>
 
-Показать помощь и выйти.
+Show help and exit.
 
 =item B<--man>
 
-Распечатать мануал и завершиться.
+Print the manual and finish.
 
 =item B<-o>, B<--open>
 
-Открыть в браузере покрытие.
+Open the coverage in your browser.
 
 =item B<-c>, B<--compile>
 
-Только компилировать, тесты не запускаем.
+Compile only, do not run tests.
 
 =item B<-f>, B<--force>
 
-Трансформировать файлы lib/**.md даже если они не изменились.
+Transform lib/**.md files even if they have not changed.
 
 =item B<-p>, B<--prove>
 
-Запустить тесты в prove, а не yath.
+Run tests in prove, not yath.
 
-=item B<-o> OPTIONS, B<--options> OPTIONS
+=item B<-o>, B<--options> OPTIONS
 
-Передать строку с опциями в yath или prove. Эти опции добавятся к опциям по умолчанию.
+Pass a string with options to yath or prove. These options will be added to the default options.
 
-Опции по умолчанию у yath:
+Default options for yath:
 
     yath test -j4 --cover
 
-Опции по умолчанию у prove:
+Default options for prove:
 
     prove -Ilib -r t
 
 =item B<-а>, B<--append>
 
-Добавить разделы функций в *.md из *.pm и завершиться.
+Add function sections to *.md from *.pm and finish.
+
+=item B<-A>, B<--new> PACKAGE [, LICENSE]
+
+Creates a new repository. B<PACKAGE> is the name of a new package, such as B<Aion::View>.
+
+Default B<LICENSE> is perl_5. And it maybe gpl_3.
 
 =back
 

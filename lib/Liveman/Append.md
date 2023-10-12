@@ -12,7 +12,7 @@ my $liveman_append = Liveman::Append->new;
 ref $liveman_append     # => Liveman::Append
 ```
 
-# DESCRIPION
+# DESCRIPTION
 
 It append manual by methods and features from modules (`lib/**.pm`) to their manuals (`lib/**.md`).
 
@@ -20,6 +20,10 @@ It append manual by methods and features from modules (`lib/**.pm`) to their man
 1. Features is class property maked OOP-frameworks as `Aion`, `Moose`, `Moo`, `Mo`, and starting with keyword `has`.
 
 # SUBROUTINES
+
+## new (@params)
+
+The constructor.
 
 ## mkmd ($md)
 
@@ -89,20 +93,11 @@ use Alt::The::Plan;
 my $alt_the_plan = Alt::The::Plan->new;
 \```
 
-# DESCRIPION
+# DESCRIPTION
 
 .
 
 # SUBROUTINES
-
-## miting ($meet, $man, $woman)
-
-This is first!
-
-\```perl
-my $alt_the_plan = Alt::The::Plan->new;
-$alt_the_plan->miting($meet, $man, $woman)  # -> .3
-\```
 
 ## planner ()
 
@@ -111,6 +106,15 @@ $alt_the_plan->miting($meet, $man, $woman)  # -> .3
 \```perl
 my $alt_the_plan = Alt::The::Plan->new;
 $alt_the_plan->planner  # -> .3
+\```
+
+## miting ($meet, $man, $woman)
+
+This is first!
+
+\```perl
+my $alt_the_plan = Alt::The::Plan->new;
+$alt_the_plan->miting($meet, $man, $woman)  # -> .3
 \```
 
 # INSTALL

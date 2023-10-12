@@ -89,8 +89,11 @@ sub append {
             ( \s* my \s* \( \s* (\$self,? \s* )? (?<args>.*?) \s* \) \s* = \s* \@_; )?
         | has \s+ (?<has> (\w+|'\w+'|"\w+"|\[ \s* ([^\[\]]*?) \s* \])+ )
     ) !mgxn) {
-        $sub{$+{sub}} = {%+} if exists $+{sub} and "_" ne substr $+{sub}, 0, 1;
-        $has{$+{has}} = {%+} if exists $+{has} and "_" ne substr $+{has}, 0, 1;
+        for my $key (qw/has sub/) {
+            ($key eq "has"? \%has: \%sub)->{$+{$key}} = {%+,
+                pos => length $`}
+                    if exists $+{$key} and "_" ne substr $+{$key}, 0, 1;
+        }
     }
 
     return $self if !keys %sub && !keys %has;
@@ -101,30 +104,36 @@ sub append {
 
     my $added = 0;
 
-    s{^\#[\ \t]+( (?<is>METHODS|SUBROUTINES) | DESCRIPTION )
-        (^```.*?^```|.)*? (?= ^\#\s)
-    }{
-        my $x = $&; my $is = $+{is};
-        if($is) {
-            while($x =~ /^\#\#[\ \t]+(\w+)/gm) {
-                delete $sub{$1};
-            }
-        }
+    my $add = sub {
         $added += keys %sub;
-        join "", $x, $is? (): "# SUBROUTINES/METHODS\n\n", map { _md_method $pkg, $_, $sub{$_}{args}, $sub{$_}{remark} } sort keys %sub;
-    }emsx or die "Нет секции DESCRIPTION!" if keys %sub;
+        join "", @_, map { _md_method $pkg, $_, $sub{$_}{args}, $sub{$_}{remark} } sort { $sub{$a}{pos} <=> $sub{$b}{pos} } keys %sub
+    };
 
-    s{^\#[\ \t]+((?<is>FEATURES) | DESCRIPTION) 
-        (^```.*?^```|.)*? (?= ^\#\s)
-    }{
-        my $x = $&; my $is = $+{is};
-        if($is) {
-            while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/gm) {
-                delete $has{$1};
-            }
+    s{^\#[\ \t]+ (METHODS|SUBROUTINES) (^```.*?^```|.)*? (?= ^\#\s) }{
+        my $x = $&;
+        while($x =~ /^\#\#[\ \t]+(\w+)/gm) {
+            delete $sub{$1};
         }
+        $add->($x)
+    }emsx
+    or s{^\#[\ \t]+ DESCRIPTION (^```.*?^```|.)*? (?= ^\#\s) }{
+        $add->($&, "# SUBROUTINES/METHODS\n\n")
+    } or die "Нет секции DESCRIPTION!" if keys %sub;
+
+    my $add = sub {
         $added += keys %has;
-        join "", $x, $is? (): "# FEATURES\n\n", map { _md_feature $pkg, $_, $sub{$_}{remark} } sort keys %has;
+        join "", @_, map { _md_feature $pkg, $_, $sub{$_}{remark} } sort { $has{$a}{pos} <=> $has{$b}{pos} } keys %has
+    };
+
+    s{^\#[\ \t]+ FEATURES (^```.*?^```|.)*? (?= ^\#\s) }{
+        my $x = $&;
+        while($x =~ /^\#\#[\ \t]+([^\n]+?)[\ \t]*/gm) {
+            delete $has{$1};
+        }
+        $add->($x)
+    }emsx
+    or s{^\#[\ \t]+ DESCRIPTION (^```.*?^```|.)*? (?= ^\#\s) }{
+        $add->($&, "# FEATURES\n\n")
     }emsx or die "Нет секции DESCRIPTION!" if keys %has;
 
 
@@ -174,7 +183,7 @@ use $pkg;
 my ${\_var $pkg} = $pkg->new;
 ```
 
-# DESCRIPION
+# DESCRIPTION
 
 .
 
@@ -220,7 +229,7 @@ Liveman::Append - append manual by methods from C<lib/**.pm> to C<lib/**.md>
 	
 	ref $liveman_append     # => Liveman::Append
 
-=head1 DESCRIPION
+=head1 DESCRIPTION
 
 It append manual by methods and features from modules (C<lib/**.pm>) to their manuals (C<lib/**.md>).
 
@@ -233,6 +242,10 @@ It append manual by methods and features from modules (C<lib/**.pm>) to their ma
 =back
 
 =head1 SUBROUTINES
+
+=head2 new (@params)
+
+The constructor.
 
 =head2 mkmd ($md)
 
@@ -301,20 +314,11 @@ File lib/Alt/The/Plan.md is:
 	my $alt_the_plan = Alt::The::Plan->new;
 	\```
 	
-	# DESCRIPION
+	# DESCRIPTION
 	
 	.
 	
 	# SUBROUTINES
-	
-	## miting ($meet, $man, $woman)
-	
-	This is first!
-	
-	\```perl
-	my $alt_the_plan = Alt::The::Plan->new;
-	$alt_the_plan->miting($meet, $man, $woman)  # -> .3
-	\```
 	
 	## planner ()
 	
@@ -323,6 +327,15 @@ File lib/Alt/The/Plan.md is:
 	\```perl
 	my $alt_the_plan = Alt::The::Plan->new;
 	$alt_the_plan->planner  # -> .3
+	\```
+	
+	## miting ($meet, $man, $woman)
+	
+	This is first!
+	
+	\```perl
+	my $alt_the_plan = Alt::The::Plan->new;
+	$alt_the_plan->miting($meet, $man, $woman)  # -> .3
 	\```
 	
 	# INSTALL

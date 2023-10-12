@@ -1,10 +1,10 @@
 # NAME
 
-Liveman - markdown compiller to test and pod.
+Liveman - markdown compiller to test and pod
 
 # VERSION
 
-1.0
+1.1
 
 # SYNOPSIS
 

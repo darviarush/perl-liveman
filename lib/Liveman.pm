@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "1.0";
+our $VERSION = "1.1";
 
 use Term::ANSIColor qw/colored/;
 use File::Slurper qw/read_text write_text/;
@@ -254,11 +254,11 @@ __END__
 
 =head1 NAME
 
-Liveman - markdown compiller to test and pod.
+Liveman - markdown compiller to test and pod
 
 =head1 VERSION
 
-1.0
+1.1
 
 =head1 SYNOPSIS
 
