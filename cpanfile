@@ -1,4 +1,4 @@
-requires 'perl', '5.008001';
+requires 'perl', '5.22.0';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';
@@ -15,3 +15,4 @@ requires 'Pod::Markdown';
 requires 'Template', '3.101';
 requires 'Term::ANSIColor', '5.01';
 requires 'Test::More', '0.98';
+requires 'Text::Trim';

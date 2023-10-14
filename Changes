@@ -2,6 +2,15 @@ Revision history for Perl extension Liveman
 
 {{$NEXT}}
 
+1.2 2023-10-12T15:15:20Z
+
+    - fix bug with perl version
+
+1.1 2023-10-12T14:56:48Z
+
+    - append methods and features in order as is pm-module
+    - Liveman learned maked new minil-distributives
+
 1.0 2023-09-27T21:23:35Z
 
     - change version in pod
