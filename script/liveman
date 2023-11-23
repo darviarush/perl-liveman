@@ -40,7 +40,7 @@ elsif($project) {
 elsif($append) {
     require Liveman::Append;
     my $liveman = Liveman::Append->new(files => \@ARGV)->appends;
-    exit $liveman->{count} > 0? 0: 1;
+    exit($liveman->{count} > 0 ? 0 : 1);
 }
 else {
     my $liveman = Liveman->new(
