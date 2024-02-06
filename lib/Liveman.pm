@@ -5,8 +5,10 @@ use common::sense;
 our $VERSION = "2.0";
 
 use Cwd::utf8 qw/getcwd/;
+use Digest::MD5 qw/md5_hex/;
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
+use File::HomeDir qw//;
 use File::Spec qw//;
 use File::Slurper qw/read_text write_text/;
 use File::Path qw/mkpath rmtree/;
@@ -123,6 +125,30 @@ sub _to_testing {
     else { # Что-то ужасное вырвалось на волю!
         "???"
     }
+}
+
+# Функция переводит текст с одного языка на другой используя утилиту trans и кеширование
+# Кешфайлы находятся по пути: ~/.cache/liveman/translate/en-ru/<md5>.txt
+sub _trans {
+	my ($text, $from_to) = @_;
+
+    my $dir = File::Spec->catfile(File::HomeDir->my_data, "liveman", "translate", $from_to =~ y/:/-/r);
+
+    my $trans = File::Spec->catfile($dir, md5_hex($text) . ".txt");
+
+    return read_text($trans) if -f $trans;
+
+    die "Каталог `$dir` защищён от записи!" if !-w $trans;
+
+    mkpath($dir);
+
+    open my $f, "|-", "trans -b $from_to > $trans" or die "Не могу запустить утилиту trans для переводов: $!";
+
+    print $f $text;
+    close $f;
+    die "Перевод текста не удался ($?): $!" if $?;
+
+    read_text($trans)
 }
 
 # Трансформирует md-файл в тест и документацию
