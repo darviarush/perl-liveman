@@ -8,7 +8,6 @@ use Cwd::utf8 qw/getcwd/;
 use Digest::MD5 qw/md5_hex/;
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
-use File::HomeDir qw//;
 use File::Spec qw//;
 use File::Slurper qw/read_text write_text/;
 use File::Path qw/mkpath rmtree/;
@@ -129,18 +128,18 @@ sub _to_testing {
 
 # Функция переводит текст с одного языка на другой используя утилиту trans и кеширование
 # Кешфайлы находятся по пути: ~/.cache/liveman/translate/en-ru/<md5>.txt
-sub _trans {
+sub _trans ($$) {
 	my ($text, $from_to) = @_;
 
-    my $dir = File::Spec->catfile(File::HomeDir->my_data, "liveman", "translate", $from_to =~ y/:/-/r);
+    my $dir = File::Spec->catfile(<~>, ".cache", "liveman", "translate", $from_to =~ y/:/-/r);
 
     my $trans = File::Spec->catfile($dir, md5_hex($text) . ".txt");
 
     return read_text($trans) if -f $trans;
 
-    die "Каталог `$dir` защищён от записи!" if !-w $trans;
-
     mkpath($dir);
+
+    die "Каталог `$dir` защищён от записи!" if !-w $dir;
 
     open my $f, "|-", "trans -b $from_to > $trans" or die "Не могу запустить утилиту trans для переводов: $!";
 
@@ -159,6 +158,8 @@ sub transform {
     print "🔖 $md ", colored("↦", "white"), " $test ", colored("...", "white"), " ";
 
     my $markdown = read_text($md);
+    my $translate;
+    $markdown =~ s/^!(\w+:\w+)[\t ]*\n/$translate = $1; "\n"/e;
 
     my @pod; my @test; my $title = 'Start'; my $close_subtest; my $use_title = 1;
 
@@ -167,7 +168,7 @@ sub transform {
     for(my $i=0; $i<@text; $i+=4) {
         my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
-        push @pod, markdown_to_pod($mark);
+        push @pod, markdown_to_pod($translate? _trans($mark, $translate): $mark);
         push @test, $mark =~ s/^/# /rmg;
 
         last unless defined $sec1;

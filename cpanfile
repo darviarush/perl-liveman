@@ -12,7 +12,6 @@ requires 'Data::UUID', '1.226';
 requires 'Devel::Cover', '1.40';
 requires 'Digest::MD5';
 requires 'File::Basename';
-requires 'File::HomeDir';
 requires 'File::Find::Wanted', '1.00';
 requires 'File::Slurper', '0.013';
 requires 'File::Spec';

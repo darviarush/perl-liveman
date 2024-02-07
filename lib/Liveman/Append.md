@@ -1,3 +1,4 @@
+!en:ru
 # NAME
 
 Liveman::Append - append manual by methods from `lib/**.pm` to `lib/**.md`
