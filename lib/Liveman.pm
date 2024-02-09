@@ -5,12 +5,12 @@ use common::sense;
 our $VERSION = "2.0";
 
 use Cwd::utf8 qw/getcwd/;
-use Digest::MD5 qw/md5_hex/;
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
 use File::Spec qw//;
 use File::Slurper qw/read_text write_text/;
 use File::Path qw/mkpath rmtree/;
+use Locale::PO qw//;
 use Markdown::To::POD qw/markdown_to_pod/;
 use Term::ANSIColor qw/colored/;
 use Text::Trim qw/trim/;
@@ -126,47 +126,64 @@ sub _to_testing {
     }
 }
 
-# Функция переводит текст с одного языка на другой используя утилиту trans и кеширование
-# Кешфайлы находятся по пути: ~/.cache/liveman/translate/en-ru/<md5>.txt
-sub _trans ($$) {
-	my ($text, $from_to) = @_;
+# Загрузка po
+sub load_po {
+	my ($self, $md, $from, $to) = @_;
+
+    $self->{po_file} = $md =~ s!!!;
+
+    @$self{qw/from to/} = ($from, $to);
+
+    my $manager = $self->{po_manager} = Locale::PO->new;
+    $self->{po} = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
+
+	$self
+}
+
+# Сохранение po
+sub save_po {
+	my ($self) = @_;
+	
+    $self->{po_manager}->save_file_fromhash($self->{po_file}, $self->{po}, "utf8");
+
+	$self
+}
+
+# Функция переводит текст с одного языка на другой используя утилиту trans
+sub trans {
+	my ($self, $text) = @_;
 
     return $text if $text =~ /^\s*$/;
 
-    $from_to =~ /:/ or die "Формат from_to: lang:lang";
-    my ($from, $to) = ($`, $');
+    my $po = $self->{po}{$text};
+    return $po->msgstr if defined $po;
 
-    my $dir = File::Spec->catfile(<~>, ".cache", "liveman", "translate", "$from-$to");
-
-    my $filename = md5_hex(do { my $x = $text; utf8::encode($x); $x });
-    my $trans = File::Spec->catfile($dir, "$filename.$to");
-
-    return read_text($trans) if -f $trans;
-
-    mkpath($dir);
-
-    die "Каталог `$dir` защищён от записи!" if !-w $dir;
-
-    my $trans_from = "$filename.$from";
+    my $dir = File::Spec->catfile(File::Spec->tmpdir, ".liveman");
+    my $trans_from = File::Spec->catfile($dir, $self->{from});
+    my $trans_to = File::Spec->catfile($dir, $self->{to});
     write_text($trans_from, $text);
 
-    if(system "trans -b $from_to < $trans_from > $trans") {
+    if(system "trans -b $self->{from}:$self->{to} < $trans_from > $trans_to") {
         die "trans: failed to execute: $!" if $? == -1;
         die printf "trans: child died with signal %d, %s coredump",
-                ($? & 127),  ($? & 128) ? 'with' : 'without'
-                    if $? & 127;
+            ($? & 127),  ($? & 128) ? 'with' : 'without'
+                if $? & 127;
         die printf "trans: child exited with value %d", $? >> 8;
     }
 
-    read_text($trans)
+    my $trans = read_text($trans_to);
+
+    $self->{po}{$text} = Locale::PO->new(-msgid => $text, -msgstr => $trans);
+
+    $trans
 }
 
 # Заголовки не переводим
-sub _trans_paragraph ($$) {
-	my ($paragraph, $from_to) = @_;
+sub trans_paragraph {
+	my ($self, $paragraph) = @_;
 
     join "", map {
-        s/^\n// ? "\n" . _trans($_, $from_to): $_
+        s/^\n// ? "\n" . $self->trans($_): $_
     } split m/^(#.*)/m, $paragraph
 }
 
@@ -178,8 +195,10 @@ sub transform {
     print "🔖 $md ", colored("↦", "white"), " $test ", colored("...", "white"), " ";
 
     my $markdown = read_text($md);
-    my $translate;
-    $markdown =~ s/^!(\w+:\w+)[\t ]*\n/$translate = $1; "\n"/e;
+
+    my $from; my $to;
+    $markdown =~ s/^!(\w+):(\w+)[\t ]*\n/$from = $1; $to = $2; "\n"/e;
+    $self->load_po($md, $from, $to);
 
     my @pod; my @test; my $title = 'Start'; my $close_subtest; my $use_title = 1;
 
@@ -188,7 +207,7 @@ sub transform {
     for(my $i=0; $i<@text; $i+=4) {
         my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
-        push @pod, markdown_to_pod($translate? _trans_paragraph($mark, $translate): $mark);
+        push @pod, markdown_to_pod($from? $self->trans_paragraph($mark): $mark);
         push @test, $mark =~ s/^/# /rmg;
 
         last unless defined $sec1;
@@ -312,6 +331,8 @@ END2
     write_text $pm, $module;
 
     $self->{count}++;
+
+    $self->save_po;
 
     print colored("ok", "bright_green"), "\n";
 
