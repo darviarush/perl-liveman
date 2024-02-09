@@ -236,7 +236,7 @@ Liveman::Append - adds sections for methods and functions from C<lib/**.pm> to C
 
 =head1 DESCRIPTION
 
-adds a manual about module methods and functions (C<lib/**.pm>) to their manuals (C<lib/**.md>).
+Adds a manual about module methods and functions (C<lib/**.pm>) to their manuals (C<lib/**.md>).
 
 =over
 
