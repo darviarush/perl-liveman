@@ -62,7 +62,8 @@ sub transforms {
             my $test = $self->test_path($md);
             my $mdmtime = (stat $md)[9];
             die "Нет файла $md" if !$mdmtime;
-            $self->transform($md, $test) if !-e $test || -e $test && $mdmtime > (stat $test)[9];
+            $self->transform($md, $test) if !-e $test
+                || $mdmtime > (stat $test)[9];
         }
     }
 
@@ -74,8 +75,7 @@ sub transforms {
             $name =~ s!(-|::)!/!g;
             $name = "lib/$name.md";
             if(-f $name && -r $name) {
-                if(!-e "README.md" || -e "README.md"
-                    && (stat $name)[9] > (stat "README.md")[9]) {
+                if(!-e "README.md" || (stat $name)[9] > (stat "README.md")[9]) {
                     write_text "README.md", read_text $name;
                     $is_copy = 1;
                 }
@@ -131,9 +131,15 @@ sub _to_testing {
 sub _trans ($$) {
 	my ($text, $from_to) = @_;
 
-    my $dir = File::Spec->catfile(<~>, ".cache", "liveman", "translate", $from_to =~ y/:/-/r);
+    return $text if $text =~ /^\s*$/;
 
-    my $trans = File::Spec->catfile($dir, md5_hex($text) . ".txt");
+    $from_to =~ /:/ or die "Формат from_to: lang:lang";
+    my ($from, $to) = ($`, $');
+
+    my $dir = File::Spec->catfile(<~>, ".cache", "liveman", "translate", "$from-$to");
+
+    my $filename = md5_hex(do { my $x = $text; utf8::encode($x); $x });
+    my $trans = File::Spec->catfile($dir, "$filename.$to");
 
     return read_text($trans) if -f $trans;
 
@@ -141,13 +147,27 @@ sub _trans ($$) {
 
     die "Каталог `$dir` защищён от записи!" if !-w $dir;
 
-    open my $f, "|-", "trans -b $from_to > $trans" or die "Не могу запустить утилиту trans для переводов: $!";
+    my $trans_from = "$filename.$from";
+    write_text($trans_from, $text);
 
-    print $f $text;
-    close $f;
-    die "Перевод текста не удался ($?): $!" if $?;
+    if(system "trans -b $from_to < $trans_from > $trans") {
+        die "trans: failed to execute: $!" if $? == -1;
+        die printf "trans: child died with signal %d, %s coredump",
+                ($? & 127),  ($? & 128) ? 'with' : 'without'
+                    if $? & 127;
+        die printf "trans: child exited with value %d", $? >> 8;
+    }
 
     read_text($trans)
+}
+
+# Заголовки не переводим
+sub _trans_paragraph ($$) {
+	my ($paragraph, $from_to) = @_;
+
+    join "", map {
+        s/^\n// ? "\n" . _trans($_, $from_to): $_
+    } split m/^(#.*)/m, $paragraph
 }
 
 # Трансформирует md-файл в тест и документацию
@@ -168,7 +188,7 @@ sub transform {
     for(my $i=0; $i<@text; $i+=4) {
         my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
-        push @pod, markdown_to_pod($translate? _trans($mark, $translate): $mark);
+        push @pod, markdown_to_pod($translate? _trans_paragraph($mark, $translate): $mark);
         push @test, $mark =~ s/^/# /rmg;
 
         last unless defined $sec1;
