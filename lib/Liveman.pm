@@ -130,9 +130,18 @@ sub _to_testing {
 sub load_po {
 	my ($self, $md, $from, $to) = @_;
 
-    $self->{po_file} = $md =~ s!!!;
-
     @$self{qw/from to/} = ($from, $to);
+
+    return $self unless $md;
+
+    my ($volume, $chains) = File::Spec->splitpath($md, 1);
+    my @dirs = File::Spec->splitdir($chains);
+    $dirs[0] = 'i18n'; # Удаляем lib
+    $dirs[$#dirs] =~ s!\.md$!\.$from-$to.pod!;
+
+    $self->{po_file} = File::Spec->catfile(@dirs);
+    my $i18n = File::Spec->catfile(@dirs[0..$#dirs-1]);
+    mkpath($i18n);
 
     my $manager = $self->{po_manager} = Locale::PO->new;
     $self->{po} = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
