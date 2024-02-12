@@ -42,3 +42,6 @@ msgstr "⚖ **GPLv3**"
 msgid "The Liveman::Append module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved."
 msgstr "The Liveman::Append module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved."
 
+msgid "Yaroslav O. Kosmina <dart@cpan.org>"
+msgstr "Yaroslav O. Kosmina <dart@cpan.org>"
+

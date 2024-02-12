@@ -430,7 +430,7 @@ __END__
 
 =head1 NAME
 
-Liveman - markdown compiller to test and pod
+Liveman - markdown compiler into tests and documentation
 
 =head1 VERSION
 
@@ -440,7 +440,7 @@ Liveman - markdown compiller to test and pod
 
 File lib/Example.md:
 
-	Twice two:
+	Дважды два:
 	\```perl
 	2*2  # -> 2+2
 	\```
@@ -451,58 +451,61 @@ Test:
 	
 	my $liveman = Liveman->new(prove => 1);
 	
-	# compile lib/Example.md file to t/example.t and added pod to lib/Example.pm
+	# Компилировать lib/Example.md файл в t/example.t 
+	# и добавить pod-документацию в lib/Example.pm
 	$liveman->transform("lib/Example.md");
 	
 	$liveman->{count}   # => 1
 	-f "t/example.t"    # => 1
 	-f "lib/Example.pm" # => 1
 	
-	# compile all lib/**.md files with a modification time longer than their corresponding test files (t/**.t)
+	# Компилировать все lib/**.md файлы со временем модификации, превышающим соответствующие тестовые файлы (t/**.t):
 	$liveman->transforms;
 	$liveman->{count}   # => 0
 	
-	# compile without check modification time
+	# Компилировать без проверки времени модификации
 	Liveman->new(compile_force => 1)->transforms->{count} # => 1
 	
-	# start tests with yath
+	# Запустить тесты с yath:
 	my $yath_return_code = $liveman->tests->{exit_code};
 	
 	$yath_return_code           # => 0
 	-f "cover_db/coverage.html" # => 1
 	
-	# limit liveman to these files for operations transforms and tests (without cover)
+	# Ограничить liveman этими файлами для операций, преобразований и тестов (без покрытия):
 	my $liveman2 = Liveman->new(files => [], force_compile => 1);
 
 =head1 DESCRIPION
 
-The problem with modern projects is that the documentation is disconnected from testing.
+The problem with modern projects is that documentation is divorced from testing.
 This means that the examples in the documentation may not work, and the documentation itself may lag behind the code.
 
-Liveman compile C<lib/**>.md files to C<t/**.t> files
-and it added pod-documentation to section C<__END__> to C<lib/**.pm> files.
+Liveman compiles C<lib/**.md> files into C<t/**.t> files
+and adds documentation in the module's C<__END__> section to the C<lib/**.pm> files.
 
-Use C<liveman> command for compile the documentation to the tests in catalog of your project and starts the tests:
+Use the C<liveman> command to compile test documentation in your project directory and run the tests:
 
- liveman
+liveman
 
-Run it with coverage.
+Run it coated.
 
-Option C<-o> open coverage in browser (coverage file: C<cover_db/coverage.html>).
+The C<-o> option opens a code coverage report by tests in the browser (coverage report file: C<cover_db/coverage.html>).
 
-Liveman replace C<our $VERSION = "...";> in C<lib/**.pm> from C<lib/**.md> if it exists in pm and in md.
+Liveman replaces C<our $VERSION = "...";> in C<lib/**.pm> from C<lib/**.md> from the B<VERSION> section if it exists.
 
-If exists file B<minil.toml>, then Liveman read C<name> from it, and copy file with this name and extension C<.md> to README.md.
+If the B<minil.toml> file exists, then Liveman will read C<name> from it and copy the file with that name and C<.md> extension into C<README.md>.
+
+If you need the documentation in C<.md> to be written in one language, and C<pod> in another, then at the beginning of C<.md> you need to indicate C<!from:to> (from which language to translate, for example, for this file: C<!ru:en>).
+
+Files with translations are stored in the C<i18n> directory, for example, C<lib/My/Module.md> -> C<i18n/My/Module.ru-en.po>. Translation is carried out using the C<trans> utility (it must be installed on the system). Translation files can be corrected, because if the translation is already in the file, then it is taken.
 
 =head2 TYPES OF TESTS
 
-Section codes C<noname> or C<perl> writes as code to C<t/**.t>-file. And comment with arrow translates on test from module C<Test::More>.
-
-The test name set as the code-line.
+Section codes without a specified programming language or with C<perl> are written as code in the file C<t/**.t>. And a comment with an arrow (# -> ) turns into a C<Test::More> test.
 
 =head3 C<is>
 
-Compare two expressions for equivalence:
+Compare two equivalent expressions:
 
 	"hi!" # -> "hi" . "!"
 	"hi!" # → "hi" . "!"
@@ -511,12 +514,12 @@ Compare two expressions for equivalence:
 
 Compare two expressions for structures:
 
-	"hi!" # --> "hi" . "!"
+	["hi!"] # --> ["hi" . "!"]
 	"hi!" # ⟶ "hi" . "!"
 
 =head3 C<is> with extrapolate-string
 
-Compare expression with extrapolate-string:
+Compare expression with extrapolated string:
 
 	my $exclamation = "!";
 	"hi!2" # => hi${exclamation}2
@@ -524,46 +527,46 @@ Compare expression with extrapolate-string:
 
 =head3 C<is> with nonextrapolate-string
 
-Compare expression with nonextrapolate-string:
+Compare an expression with a non-extrapolated string:
 
 	'hi${exclamation}3' # \> hi${exclamation}3
 	'hi${exclamation}3' # ↦ hi${exclamation}3
 
 =head3 C<like>
 
-It check a regular expression included in the expression:
+Tests the regular expression included in the expression:
 
 	'abbc' # ~> b+
 	'abc'  # ↬ b+
 
 =head3 C<unlike>
 
-It check a regular expression excluded in the expression:
+It checks the regular expression excluded from the expression:
 
 	'ac' # <~ b+
 	'ac' # ↫ b+
 
 =head2 EMBEDDING FILES
 
-Each test is executed in a temporary directory, which is erased and created when the test is run.
+Each test runs in a temporary directory, which is deleted and created when the test runs.
 
-This directory format is /tmp/.liveman/I<project>/I<path-to-test>/.
+The format of this directory is /tmp/.liveman/I<project>/I<path-to-test>/.
 
-Code section in md-file prefixed line B<< File C<path>: >> write to file in rintime testing.
+The section of code on the line with the md file prefix B<< File C<path>: >> will be written to a file when tested at runtime.
 
-Code section in md-file prefixed line B<< File C<path> is: >> will be compared with the file by the method C<Test::More::is>.
+The code section in the md file prefix line B<< File C<path> is: >> will be compared to the file using the C<Test::More::is> method.
 
 File experiment/test.txt:
 
 	hi!
 
-File experiment/test.txt is:
+The experiment/test.txt file is:
 
 	hi!
 
-B<Attention!> An empty string between the prefix and the code is not allowed!
+B<Attention!> An empty line between the prefix and the code is not allowed!
 
-Prefixes maybe on russan: C<Файл path:> and C<Файл path является:>.
+These prefixes can be in both English and Russian.
 
 =head1 METHODS
 
@@ -573,31 +576,31 @@ Constructor. Has arguments:
 
 =over
 
-=item 1. C<files> (array_ref) — list of md-files for methods C<transforms> and C<tests>.
+=item 1. C<files> (array_ref) - list of md files for the C<transforms> and C<tests> methods.
 
-=item 2. C<open> (boolean) — open coverage in browser. If is B<opera> browser — open in it. Else — open via C<xdg-open>.
+=item 2. C<open> (boolean) — open the coverage in the browser. If the B<opera> browser is installed on your computer, the C<opera> command will be used to open it. Otherwise - C<xdg-open>.
 
-=item 3. C<force_compile> (boolean) — do not check the md-files modification time.
+=item 3. C<force_compile> (boolean) - do not check the modification time of md files.
 
-=item 4. C<options> — add options in command line to yath or prove.
+=item 4. C<options> - add parameters on the command line for verification or proof.
 
-=item 5. C<prove> — use prove, but use'nt yath.
+=item 5. C<prove> - use proof (the C<prove> command to run tests), rather than the C<yath> command.
 
 =back
 
 =head2 test_path ($md_path)
 
-Get the path to the C<t/**.t>-file from the path to the C<lib/**.md>-file:
+Get the path to the C<t/**.t> file from the path to the C<lib/**.md> file:
 
 	Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t
 
 =head2 transform ($md_path, [$test_path])
 
-Compile C<lib/**.md>-file to C<t/**.t>-file.
+Compiles a C<lib/**.md> file into a C<t/**.t> file.
 
-And method C<transform> replace the B<pod>-documentation in section C<__END__> in C<lib/**.pm>-file. And create C<lib/**.pm>-file if it not exists.
+It also replaces the B<pod> documentation in the C<__END__> section in the C<lib/**.pm> file and creates a C<lib/**.pm> file if it does not exist.
 
-File lib/Example.pm is:
+The lib/Example.pm file is:
 
 	package Example;
 	
@@ -607,28 +610,28 @@ File lib/Example.pm is:
 	
 	=encoding utf-8
 	
-	Twice two:
+	Дважды два:
 	
 		2*2  # -> 2+2
 	
 
-File C<lib/Example.pm> was created from file C<lib/Example.md> described in section C<SINOPSIS> in this document.
+The file C<lib/Example.pm> was created from the file C<lib/Example.md>, as described in the C<SINOPSIS> section of this document.
 
 =head2 transforms ()
 
-Compile C<lib/**.md>-files to C<t/**.t>-files.
+Compile C<lib/**.md> files into C<t/**.t> files.
 
-All if C<< $self-E<gt>{files} >> is empty, or C<< $self-E<gt>{files} >>.
+All if C<< $self-E<gt>{files} >> is not set, or C<< $self-E<gt>{files} >>.
 
 =head2 tests ()
 
-Tests C<t/**.t>-files.
+Run tests (C<t/**.t> files).
 
-All if C<< $self-E<gt>{files} >> is empty, or C<< $self-E<gt>{files} >> only.
+All if C<< $self-E<gt>{files} >> is not set, or C<< $self-E<gt>{files} >> only.
 
 =head1 AUTHOR
 
-Yaroslav O. Kosmina LL<mailto:dart@cpan.org>
+Yaroslav O. Kosmina L<mailto:dart@cpan.org>
 
 =head1 LICENSE
 

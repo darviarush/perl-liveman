@@ -141,7 +141,7 @@ The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All
 
 # AUTHOR
 
-Yaroslav O. Kosmina [dart@cpan.org](dart@cpan.org)
+Yaroslav O. Kosmina <dart@cpan.org>
 
 # LICENSE
 
