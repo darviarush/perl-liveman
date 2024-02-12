@@ -1,11 +1,12 @@
+[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions) [![MetaCPAN Release](https://badge.fury.io/pl/Liveman.svg)](https://metacpan.org/release/Liveman)
 !ru:en
 # NAME
 
-Liveman - markdown компиллятор в тесты и документацию
+Liveman - компиллятор из markdown в тесты и документацию
 
 # VERSION
 
-2.0
+3.0
 
 # SYNOPSIS
 
@@ -71,6 +72,8 @@ Liveman заменяет `our $VERSION = "...";` в `lib/**.pm` из `lib/**.md`
 Если нужно, чтобы документация в `.md` была написана на одном языке, а `pod` – на другом, то в начале `.md` нужно указать `!from:to` (с какого на какой язык перевести, например, для этого файла: `!ru:en`).
 
 Файлы с переводами складываются в каталог `i18n`, например, `lib/My/Module.md` -> `i18n/My/Module.ru-en.po`. Перевод осуществляется утилитой `trans` (она должна быть установлена в системе). Файлы переводов можно подкорректировать, так как если перевод уже есть в файле, то берётся он.
+
+**Внимание!** Будьте осторожны и после редактирования `.md` просматривайте `git diff`, чтобы не потерять подкорректированные перевода в `.po`.
 
 ## TYPES OF TESTS
 

@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "2.0";
+our $VERSION = "3.0";
 
 use Cwd::utf8 qw/getcwd/;
 use File::Basename qw/dirname/;
@@ -10,7 +10,6 @@ use File::Find::Wanted qw/find_wanted/;
 use File::Spec qw//;
 use File::Slurper qw/read_text write_text/;
 use File::Path qw/mkpath rmtree/;
-use List::Util qw/max/;
 use Locale::PO qw//;
 use Markdown::To::POD qw/markdown_to_pod/;
 use Term::ANSIColor qw/colored/;
@@ -167,12 +166,10 @@ sub load_po {
     my $lineno = 0;
     for(keys %$po) {
         my $val = $po->{$_};
-        $lineno = max($lineno, $val->loaded_line_number);
         $po{_first_line_trim(_from_str($_))} = $val;
     }
 
     $self->{po} = \%po;
-    $self->{lineno} = $lineno;
 
 	$self
 }
@@ -183,7 +180,8 @@ sub save_po {
 
     return $self unless $self->{from};
 
-    my @po = sort { $a->{loaded_line_number} <=> $b->{loaded_line_number} } values %{$self->{po}};
+    my @po = grep $_->{__used}, sort { $a->{loaded_line_number} <=> $b->{loaded_line_number} } values %{$self->{po}};
+
     $self->{po_manager}->save_file_fromarray($self->{po_file}, \@po, "utf8");
 
 	$self
@@ -191,14 +189,14 @@ sub save_po {
 
 # Функция переводит текст с одного языка на другой используя утилиту trans
 sub trans {
-	my ($self, $text) = @_;
+	my ($self, $text, $lineno) = @_;
 
     $text = _first_line_trim($text);
 
     return $text if $text eq "";
 
     my $po = $self->{po}{$text};
-    return _from_str($po->msgstr) if defined $po;
+    $po->{__used} = 1, $po->loaded_line_number($lineno), return _from_str($po->msgstr) if defined $po;
 
     my $dir = File::Spec->catfile(File::Spec->tmpdir, ".liveman");
     my $trans_from = File::Spec->catfile($dir, $self->{from});
@@ -215,21 +213,24 @@ sub trans {
 
     my $trans = _first_line_trim(read_text($trans_to));
 
-    $self->{po}{$text} = Locale::PO->new(
+    $po = Locale::PO->new(
         -msgid => $text,
         -msgstr => $trans,
-        -loaded_line_number => ++$self->{lineno},
+        -loaded_line_number => $lineno,
     );
+
+    $po->{__used} = 1;
+    $self->{po}{$text} = $po;
 
     $trans
 }
 
 # Заголовки не переводим
 sub trans_paragraph {
-	my ($self, $paragraph) = @_;
+	my ($self, $paragraph, $lineno) = @_;
 
     join "", map {
-        /^#/ ? $_: join "", "\n", $self->trans(_first_line_trim($_)), "\n\n"
+        /^#/ ? $_: join "", "\n", $self->trans(_first_line_trim($_), $lineno += 0.001), "\n\n"
     } split m/^(#.*)/m, $paragraph
 }
 
@@ -253,7 +254,7 @@ sub transform {
     for(my $i=0; $i<@text; $i+=4) {
         my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
-        push @pod, markdown_to_pod($from? $self->trans_paragraph($mark): $mark);
+        push @pod, markdown_to_pod($from? $self->trans_paragraph($mark, $i): $mark);
         push @test, $mark =~ s/^/# /rmg;
 
         last unless defined $sec1;
@@ -430,11 +431,11 @@ __END__
 
 =head1 NAME
 
-Liveman - markdown compiler into tests and documentation
+Liveman - compiler from markdown to tests and documentation
 
 =head1 VERSION
 
-2.0
+3.0
 
 =head1 SYNOPSIS
 

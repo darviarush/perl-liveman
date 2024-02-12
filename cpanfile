@@ -15,7 +15,6 @@ requires 'File::Find::Wanted', '1.00';
 requires 'File::Slurper', '0.013';
 requires 'File::Spec';
 requires 'File::Path', '2.18';
-requires 'List::Util';
 requires 'Locale::PO', '0.27';
 requires 'Markdown::To::POD', '0.06';
 requires 'Pod::Markdown';

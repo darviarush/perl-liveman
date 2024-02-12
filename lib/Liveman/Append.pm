@@ -250,7 +250,7 @@ Adds a manual about module methods and functions (C<lib/**.pm>) to their manuals
 
 =head2 new (@params)
 
-The constructor.
+Constructor.
 
 =head2 mkmd ($md)
 

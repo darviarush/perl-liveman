@@ -13,7 +13,7 @@ msgstr ""
 "1. Features are instance properties added by OOP frameworks such as `Aion`, `Moose`, `Moo`, `Mo`, and starting with the `has` keyword."
 
 msgid "Конструктор."
-msgstr "The constructor."
+msgstr "Constructor."
 
 msgid "Создаёт md-файл."
 msgstr "Creates an md file."
@@ -33,15 +33,12 @@ msgstr ""
 msgid "File lib/Alt/The/Plan.md is:"
 msgstr "File lib/Alt/The/Plan.md is:"
 
-msgid "Yaroslav O. Kosmina [dart@cpan.org](dart@cpan.org)"
-msgstr "Yaroslav O. Kosmina [dart@cpan.org](dart@cpan.org)"
+msgid "Yaroslav O. Kosmina <dart@cpan.org>"
+msgstr "Yaroslav O. Kosmina <dart@cpan.org>"
 
 msgid "⚖ **GPLv3**"
 msgstr "⚖ **GPLv3**"
 
 msgid "The Liveman::Append module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved."
 msgstr "The Liveman::Append module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved."
-
-msgid "Yaroslav O. Kosmina <dart@cpan.org>"
-msgstr "Yaroslav O. Kosmina <dart@cpan.org>"
 
