@@ -10,6 +10,7 @@ use File::Find::Wanted qw/find_wanted/;
 use File::Spec qw//;
 use File::Slurper qw/read_text write_text/;
 use File::Path qw/mkpath rmtree/;
+use List::Util qw/max/;
 use Locale::PO qw//;
 use Markdown::To::POD qw/markdown_to_pod/;
 use Term::ANSIColor qw/colored/;
@@ -126,6 +127,22 @@ sub _to_testing {
     }
 }
 
+# Обрезает строки вначале и все пробельные символы в конце
+sub _first_line_trim ($) {
+	local ($_) = @_;
+    s/^([\t ]*\n)*//;
+    s/\s*$//;
+    $_
+}
+
+# Преобразует из строчного формата
+sub _from_str ($) {
+    local ($_) = @_;
+    s/^"(.*)"$/$1/s;
+    s/\\(.)/ $1 eq "n"? "\n": $1 eq "t"? "\t": $1 /ge;
+    $_
+}
+
 # Загрузка po
 sub load_po {
 	my ($self, $md, $from, $to) = @_;
@@ -137,14 +154,25 @@ sub load_po {
     my ($volume, $chains) = File::Spec->splitpath($md, 1);
     my @dirs = File::Spec->splitdir($chains);
     $dirs[0] = 'i18n'; # Удаляем lib
-    $dirs[$#dirs] =~ s!\.md$!\.$from-$to.pod!;
+    $dirs[$#dirs] =~ s!\.md$!\.$from-$to.po!;
 
     $self->{po_file} = File::Spec->catfile(@dirs);
     my $i18n = File::Spec->catfile(@dirs[0..$#dirs-1]);
     mkpath($i18n);
 
     my $manager = $self->{po_manager} = Locale::PO->new;
-    $self->{po} = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
+    my $po = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
+
+    my %po;
+    my $lineno = 0;
+    for(keys %$po) {
+        my $val = $po->{$_};
+        $lineno = max($lineno, $val->loaded_line_number);
+        $po{_first_line_trim(_from_str($_))} = $val;
+    }
+
+    $self->{po} = \%po;
+    $self->{lineno} = $lineno;
 
 	$self
 }
@@ -152,8 +180,11 @@ sub load_po {
 # Сохранение po
 sub save_po {
 	my ($self) = @_;
-	
-    $self->{po_manager}->save_file_fromhash($self->{po_file}, $self->{po}, "utf8");
+
+    return $self unless $self->{from};
+
+    my @po = sort { $a->{loaded_line_number} <=> $b->{loaded_line_number} } values %{$self->{po}};
+    $self->{po_manager}->save_file_fromarray($self->{po_file}, \@po, "utf8");
 
 	$self
 }
@@ -162,10 +193,12 @@ sub save_po {
 sub trans {
 	my ($self, $text) = @_;
 
-    return $text if $text =~ /^\s*$/;
+    $text = _first_line_trim($text);
+
+    return $text if $text eq "";
 
     my $po = $self->{po}{$text};
-    return $po->msgstr if defined $po;
+    return _from_str($po->msgstr) if defined $po;
 
     my $dir = File::Spec->catfile(File::Spec->tmpdir, ".liveman");
     my $trans_from = File::Spec->catfile($dir, $self->{from});
@@ -175,14 +208,18 @@ sub trans {
     if(system "trans -b $self->{from}:$self->{to} < $trans_from > $trans_to") {
         die "trans: failed to execute: $!" if $? == -1;
         die printf "trans: child died with signal %d, %s coredump",
-            ($? & 127),  ($? & 128) ? 'with' : 'without'
+            ($? & 127), ($? & 128) ? 'with' : 'without'
                 if $? & 127;
         die printf "trans: child exited with value %d", $? >> 8;
     }
 
-    my $trans = read_text($trans_to);
+    my $trans = _first_line_trim(read_text($trans_to));
 
-    $self->{po}{$text} = Locale::PO->new(-msgid => $text, -msgstr => $trans);
+    $self->{po}{$text} = Locale::PO->new(
+        -msgid => $text,
+        -msgstr => $trans,
+        -loaded_line_number => ++$self->{lineno},
+    );
 
     $trans
 }
@@ -192,7 +229,7 @@ sub trans_paragraph {
 	my ($self, $paragraph) = @_;
 
     join "", map {
-        s/^\n// ? "\n" . $self->trans($_): $_
+        /^#/ ? $_: join "", "\n", $self->trans(_first_line_trim($_)), "\n\n"
     } split m/^(#.*)/m, $paragraph
 }
 
