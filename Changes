@@ -2,6 +2,10 @@ Revision history for Perl extension Liveman
 
 {{$NEXT}}
 
+3.1 2024-02-15T09:25:10Z
+
+    - translate md by paragraphs
+
 3.0 2024-02-12T15:02:02Z
 
     - use trans util for translate md to pod
