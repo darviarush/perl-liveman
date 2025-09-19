@@ -1,11 +1,11 @@
-use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s =  '/tmp/.liveman/perl-liveman/liveman'    ;     File::Path::rmtree($s) if -e $s;     File::Path::mkpath($s);     chdir $s or die "chdir $s: $!";      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     }  } # 
+use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s =  '/tmp/.liveman/perl-liveman/liveman'    ;     File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;     File::Path::mkpath($s);     chdir $s or die "chdir $s: $!";     push @INC, "lib";      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     }  } # 
 # # NAME
 # 
 # Liveman - компиллятор из markdown в тесты и документацию
 # 
 # # VERSION
 # 
-# 3.0
+# 3.2
 # 
 # # SYNOPSIS
 # 
@@ -76,6 +76,8 @@ my $liveman2 = Liveman->new(files => [], force_compile => 1);
 # Файлы с переводами складываются в каталог `i18n`, например, `lib/My/Module.md` -> `i18n/My/Module.ru-en.po`. Перевод осуществляется утилитой `trans` (она должна быть установлена в системе). Файлы переводов можно подкорректировать, так как если перевод уже есть в файле, то берётся он.
 # 
 # **Внимание!** Будьте осторожны и после редактирования `.md` просматривайте `git diff`, чтобы не потерять подкорректированные переводы в `.po`.
+# 
+# **Примечание:** `trans -R` покажет список языков, которые можно указывать в **!from:to** на первой строке документа.
 # 
 # ## TYPES OF TESTS
 # 
@@ -158,7 +160,7 @@ done_testing; }; subtest '`unlike`' => sub {
 # 
 # **Внимание!** Пустая строка между префиксом и кодом не допускается!
 # 
-# Эти префиксы могут быть как на английском, так и на русском.
+# Эти префиксы могут быть как на английском, так и на русском (`File [path](https://metacpan.org/pod/path):` и `File [path](https://metacpan.org/pod/path) is:`).
 # 
 # # METHODS
 # 
@@ -215,6 +217,49 @@ __END__
 # Запустить тесты (`t/**.t`-файлы).
 # 
 # Все, если `$self->{files}` не установлен, или `$self->{files}` только.
+# 
+# ## load_po ($md, $from, $to)
+# 
+# Считывает po-файл.
+# 
+# ## save_po ()
+# 
+# Сохраняет po-файл.
+# 
+# ## trans ($text, $lineno)
+# 
+# Функция переводит текст с одного языка на другой используя утилиту trans.
+# 
+# ## trans_paragraph ($paragraph, $lineno)
+# 
+# Так же разбивает по параграфам.
+# 
+# # DEPENDENCIES IN CPANFILE
+# 
+# В своей библиотеке, которую вы будете тестировать Liveman-ом, нужно будет указать дополнительные зависимости для тестов в **cpanfile**:
+# 
+
+# on 'test' => sub {
+#     requires 'Test::More', '0.98';
+# 
+#     requires 'Carp';
+#     requires 'File::Basename';
+#     requires 'File::Path';
+#     requires 'File::Slurper';
+#     requires 'File::Spec';
+#     requires 'Scalar::Util';
+# };
+
+# 
+# Так же неплохо будет указать и сам **Liveman** в разделе для разработки:
+# 
+
+# on 'develop' => sub {
+#     requires 'Minilla', 'v3.1.19';
+#     requires 'Data::Printer', '1.000004';
+#     requires 'Liveman', '1.0';
+# };
+
 # 
 # # AUTHOR
 # 

@@ -1,10 +1,10 @@
 {
-   "abstract" : "compiler from markdown to tests and documentation",
+   "abstract" : "âLiving Guideâ. Utility for converting files I<* Lib/**. Md *> in test files (I<< * t/**. T B<) and documentation (> pod B<), which is placed in the corresponding module (> Lib/*. PM * >>)",
    "author" : [
       "Yaroslav O. Kosmina L<mailto:dart@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.23, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.26, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "gpl_3"
    ],
@@ -42,30 +42,49 @@
       },
       "runtime" : {
          "requires" : {
-            "App::Yath" : "1.000152",
-            "Carp::Always::Color" : "0.08",
+            "App::Prove" : "0",
+            "App::Yath" : "0",
+            "Badge::Simple" : "0.04",
+            "Carp" : "1.54",
             "Cwd::utf8" : "0.011",
             "Data::UUID" : "1.226",
             "Devel::Cover" : "1.40",
             "File::Basename" : "0",
+            "File::Find" : "1.44",
             "File::Find::Wanted" : "1.00",
+            "File::Glob" : "0",
             "File::Path" : "2.18",
             "File::Slurper" : "0.013",
             "File::Spec" : "0",
+            "File::Spec::Unix" : "3.91",
+            "Getopt::Long" : "2.58",
             "Locale::PO" : "0.27",
             "Markdown::To::POD" : "0.06",
+            "Module::ScanDeps" : "1.35",
             "Pod::Markdown" : "0",
+            "Pod::Text" : "5.01_02",
+            "Pod::Usage" : "2.03",
+            "Scalar::Util" : "1.63",
             "Template" : "3.101",
             "Term::ANSIColor" : "5.01",
             "Test::More" : "0.98",
             "Text::Trim" : "0",
+            "UUID" : "0.37",
             "common::sense" : "3.75",
             "perl" : "v5.22.0"
          }
       },
       "test" : {
          "requires" : {
-            "Test::More" : "0.98"
+            "Carp" : "0",
+            "File::Basename" : "0",
+            "File::Find" : "0",
+            "File::Path" : "0",
+            "File::Slurper" : "0",
+            "File::Spec" : "0",
+            "Scalar::Util" : "0",
+            "Test::More" : "0.98",
+            "common::sense" : "0"
          }
       }
    },

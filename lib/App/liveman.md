@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions) [![MetaCPAN Release](https://badge.fury.io/pl/Liveman.svg)](https://metacpan.org/release/Liveman) [![Coverage Status](https://img.shields.io/coveralls/darviarush/perl-liveman/master.svg?style=flat)](https://coveralls.io/r/darviarush/perl-liveman?branch=master)
+!ru:en
 # NAME
 
 liveman - «живое руководство». Утилита для конвертации файлов **lib/\*\*.md** в тестовые файлы (**t/\*\*.t**) и документацию (**POD**), которая размещается в соответствующем модуле (**lib/\*\*.pm**)

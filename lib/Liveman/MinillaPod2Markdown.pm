@@ -48,7 +48,7 @@ __END__
 
 =head1 NAME
 
-Liveman::MinillaPod2Markdown – a stub for Minilla that redirects lib/MainModule.md to README.md
+Liveman :: Minillapod2markdown - a plug for minilla, which throws Lib/Mainmodule.md to Readme.md
 
 =head1 SYNOPSIS
 
@@ -67,15 +67,15 @@ Liveman::MinillaPod2Markdown – a stub for Minilla that redirects lib/MainModul
 	
 	$mark->as_markdown  # => hi!
 
-=head1 DESCRIPTION
+=head1 DESCRIPION
 
-Add the line C<markdown_maker = "Liveman::MinillaPod2Markdown"> to C<minil.toml>, and Minilla will not create C<README.md> from the pod documentation of the main module, but will take it from the file of the same name next to the C<*.md> extension.
+Add the C<Markdown_maker =" Liveman :: Minillapod2markdown "> Minil.tomlC<"Liveman: Minilla will not create> readme.mdC<from the POD-documenting of the main module, and will take from the same name next to the extension>*.MD`.
 
 =head1 SUBROUTINES
 
 =head2 as_markdown ()
 
-Stub.
+Plug.
 
 =head2 new ()
 
@@ -83,11 +83,11 @@ Constructor.
 
 =head2 parse_from_file ($path)
 
-Stub.
+Plug.
 
 =head1 INSTALL
 
-To install this module on your system, follow these steps LL<https://metacpan.org/pod/App::cpm>:
+To install this module in your system, follow the following actions [command] (https://metacpan.org/pod/app:::
 
 	sudo cpm install -gvv Liveman::MinillaPod2Markdown
 
@@ -97,8 +97,8 @@ Yaroslav O. Kosmina L<mailto:dart@cpan.org>
 
 =head1 LICENSE
 
-⚖ B<GPLv3>
+⚖ I<* gplv3 *>
 
 =head1 COPYRIGHT
 
-The Liveman::MinillaPod2Markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
+The Liveman :: minillapod2markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All Rights Reserved.

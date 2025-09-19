@@ -160,7 +160,7 @@ hi!
 
 **Внимание!** Пустая строка между префиксом и кодом не допускается!
 
-Эти префиксы могут быть как на английском, так и на русском (`File <path>:` и `File <path> is:`).
+Эти префиксы могут быть как на английском, так и на русском (`File [path](https://metacpan.org/pod/path):` и `File [path](https://metacpan.org/pod/path) is:`).
 
 # METHODS
 
@@ -217,6 +217,22 @@ __END__
 Запустить тесты (`t/**.t`-файлы).
 
 Все, если `$self->{files}` не установлен, или `$self->{files}` только.
+
+## load_po ($md, $from, $to)
+
+Считывает po-файл.
+
+## save_po ()
+
+Сохраняет po-файл.
+
+## trans ($text, $lineno)
+
+Функция переводит текст с одного языка на другой используя утилиту trans.
+
+## trans_paragraph ($paragraph, $lineno)
+
+Так же разбивает по параграфам.
 
 # DEPENDENCIES IN CPANFILE
 
