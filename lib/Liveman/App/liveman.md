@@ -36,8 +36,7 @@ liveman [-h] [--man] [-A pkg [license]] [-w] [-o][-c][-f][-s][-a] [<files> ...]
 Показать версию и выйти.
 
 ```perl
-$ENV{PATH} = "script:$ENV{PATH}";
-`liveman -v` # ~> ^\d+\.\d+$
+`script/liveman -v` # ~> ^\d+\.\d+$
 ```
 
 **--man**
