@@ -11,11 +11,11 @@ msgid "Заглушка."
 msgstr "Plug."
 
 msgid "Парсит !options на первой строке:"
-msgstr "Parses! Options on the first line:"
+msgstr "Parses !options on the first line:"
 
 msgid "1. Удаляет ! и языки за ним.\n"
 "2. Переводит бейджи через запятую в markdown-картинки."
-msgstr "1. Removes! And languages behind him.\n"
+msgstr "1. Removes ! and languages behind him.\n"
 "2. He translates the badge through a comma into a Markdown picture."
 
 msgid "Список бейджей:"
@@ -27,10 +27,10 @@ msgid ""
 "3. metacpan - бейдж на релиз.\n"
 "4. cover - бейдж на покрытие который создаёт `liveman` при прохождении теста в `doc/badges/total.svg`."
 msgstr ""
-"1. Badges - all badges.\n"
-"2. Github -Actions - Baig for githab tests.\n"
-"3. Metacpan - badge for release.\n"
-"4. Cover - Baig to coating that creates `Liveman` when passing the dough in` doc/badges/total.svg`."
+"1. badges - all badges.\n"
+"2. github-actions - badge for GitHub tests.\n"
+"3. metacpan - badge for release.\n"
+"4. cover - badge for coverage that creates `liveman` when passing the test in `doc/badges/total.svg`."
 
 msgid "Путь проекта на github: username/repository."
 msgstr "The project path to GitHub: username/repository."
@@ -45,11 +45,11 @@ msgid "Версия модуля."
 msgstr "The version of the module."
 
 msgid "Чтобы установить этот модуль в вашу систему, выполните следующие действия [командой](https://metacpan.org/pod/App::cpm):"
-msgstr "To install this module in your system, follow the following actions [command] (https://metacpan.org/pod/app:::"
+msgstr "To install this module in your system, follow the following actions [command] (https://metacpan.org/pod/App::cpm):"
 
 msgid "⚖ **GPLv3**"
-msgstr "⚖ ** gplv3 **"
+msgstr "⚖ **gplv3**"
 
 msgid "The Liveman::MinillaPod2Markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved."
-msgstr "The Liveman :: minillapod2markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All Rights Reserved."
+msgstr "The Liveman::MinillaPod2Markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All Rights Reserved."
 

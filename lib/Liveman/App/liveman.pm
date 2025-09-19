@@ -34,7 +34,7 @@ elsif ($help) {
     );
 }
 elsif ($version) {
-    print Liveman->VERSION, "\n";
+    print $Liveman::VERSION, "\n";
 }
 elsif ($man) {
     pod2usage(

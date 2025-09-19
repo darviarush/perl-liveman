@@ -155,11 +155,11 @@ Plug.
 
 =head2 parse_options ($options)
 
-Parses! Options on the first line:
+Parses !options on the first line:
 
 =over
 
-=item 1. Removes! And languages behind him.
+=item 1. Removes ! and languages behind him.
 
 =item 2. He translates the badge through a comma into a Markdown picture.
 
@@ -169,13 +169,13 @@ Badge List:
 
 =over
 
-=item 1. Badges - all badges.
+=item 1. badges - all badges.
 
-=item 2. Github -Actions - Baig for githab tests.
+=item 2. github-actions - badge for GitHub tests.
 
-=item 3. Metacpan - badge for release.
+=item 3. metacpan - badge for release.
 
-=item 4. Cover - Baig to coating that creates C<Liveman> when passing the dough inC<doc/badges/total.svg>.
+=item 4. cover - badge for coverage that creates C<liveman> when passing the test in C<doc/badges/total.svg>.
 
 =back
 
@@ -197,7 +197,7 @@ The version of the module.
 
 =head1 INSTALL
 
-To install this module in your system, follow the following actions [command] (https://metacpan.org/pod/app:::
+To install this module in your system, follow the following actions [command] (https://metacpan.org/pod/App::cpm):
 
 	sudo cpm install -gvv Liveman::MinillaPod2Markdown
 
@@ -207,8 +207,8 @@ Yaroslav O. Kosmina L<mailto:dart@cpan.org>
 
 =head1 LICENSE
 
-⚖ I<* gplv3 *>
+⚖ B<gplv3>
 
 =head1 COPYRIGHT
 
-The Liveman :: minillapod2markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All Rights Reserved.
+The Liveman::MinillaPod2Markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All Rights Reserved.
