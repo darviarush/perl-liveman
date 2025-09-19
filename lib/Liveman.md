@@ -1,4 +1,4 @@
-!ru:en
+!ru:en,badges
 # NAME
 
 Liveman - компиллятор из markdown в тесты и документацию
@@ -11,7 +11,7 @@ Liveman - компиллятор из markdown в тесты и документ
 
 Файл lib/Example.md:
 ```markdown
-Дважды два:
+Twice two:
 \```perl
 2*2  # -> 2+2
 \```
@@ -23,29 +23,21 @@ use Liveman;
 
 my $liveman = Liveman->new(prove => 1);
 
-# Компилировать lib/Example.md файл в t/example.t 
-# и добавить pod-документацию в lib/Example.pm
 $liveman->transform("lib/Example.md");
 
 $liveman->{count}   # => 1
 -f "t/example.t"    # => 1
 -f "lib/Example.pm" # => 1
 
-# Компилировать все lib/**.md файлы со временем модификации, превышающим соответствующие тестовые файлы (t/**.t):
 $liveman->transforms;
 $liveman->{count}   # => 0
 
-# Компилировать без проверки времени модификации
 Liveman->new(compile_force => 1)->transforms->{count} # => 1
 
-# Запустить тесты с yath:
 my $yath_return_code = $liveman->tests->{exit_code};
 
 $yath_return_code           # => 0
 -f "cover_db/coverage.html" # => 1
-
-# Ограничить liveman этими файлами для операций, преобразований и тестов (без покрытия):
-my $liveman2 = Liveman->new(files => [], force_compile => 1);
 ```
 
 # DESCRIPION
@@ -198,7 +190,7 @@ __END__
 
 =encoding utf-8
 
-Дважды два:
+Twice two:
 
 	2*2  # -> 2+2
 

@@ -1,4 +1,4 @@
-use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s =  '/tmp/.liveman/perl-liveman/liveman'    ;     File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;     File::Path::mkpath($s);     chdir $s or die "chdir $s: $!";     push @INC, "lib";      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     }  } # 
+use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s =  '/tmp/.liveman/perl-liveman/liveman'    ;     File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;     File::Path::mkpath($s);     chdir $s or die "chdir $s: $!";     push @INC, "lib";      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     }  } # !ru:en,badges
 # # NAME
 # 
 # Liveman - компиллятор из markdown в тесты и документацию
@@ -11,7 +11,7 @@ use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename q
 # 
 # Файл lib/Example.md:
 #@> lib/Example.md
-#>> Дважды два:
+#>> Twice two:
 #>> ```perl
 #>> 2*2  # -> 2+2
 #>> ```
@@ -23,29 +23,21 @@ use Liveman;
 
 my $liveman = Liveman->new(prove => 1);
 
-# Компилировать lib/Example.md файл в t/example.t 
-# и добавить pod-документацию в lib/Example.pm
 $liveman->transform("lib/Example.md");
 
 ::is scalar do {$liveman->{count}}, "1", '$liveman->{count}   # => 1';
 ::is scalar do {-f "t/example.t"}, "1", '-f "t/example.t"    # => 1';
 ::is scalar do {-f "lib/Example.pm"}, "1", '-f "lib/Example.pm" # => 1';
 
-# Компилировать все lib/**.md файлы со временем модификации, превышающим соответствующие тестовые файлы (t/**.t):
 $liveman->transforms;
 ::is scalar do {$liveman->{count}}, "0", '$liveman->{count}   # => 0';
 
-# Компилировать без проверки времени модификации
 ::is scalar do {Liveman->new(compile_force => 1)->transforms->{count}}, "1", 'Liveman->new(compile_force => 1)->transforms->{count} # => 1';
 
-# Запустить тесты с yath:
 my $yath_return_code = $liveman->tests->{exit_code};
 
 ::is scalar do {$yath_return_code}, "0", '$yath_return_code           # => 0';
 ::is scalar do {-f "cover_db/coverage.html"}, "1", '-f "cover_db/coverage.html" # => 1';
-
-# Ограничить liveman этими файлами для операций, преобразований и тестов (без покрытия):
-my $liveman2 = Liveman->new(files => [], force_compile => 1);
 
 # 
 # # DESCRIPION
@@ -198,7 +190,7 @@ __END__
 
 =encoding utf-8
 
-Дважды два:
+Twice two:
 
 	2*2  # -> 2+2
 

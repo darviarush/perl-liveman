@@ -1,5 +1,5 @@
 {
-   "abstract" : "âLiving Guideâ. Utility for converting files I<* Lib/**. Md *> in test files (I<< * t/**. T B<) and documentation (> pod B<), which is placed in the corresponding module (> Lib/*. PM * >>)",
+   "abstract" : "компиллятор из markdown в тесты и документацию",
    "author" : [
       "Yaroslav O. Kosmina L<mailto:dart@cpan.org>"
    ],

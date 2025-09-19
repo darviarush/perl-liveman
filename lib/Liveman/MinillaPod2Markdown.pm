@@ -10,24 +10,25 @@ sub new { bless {}, __PACKAGE__ }
 sub parse_from_file {
     my ($self, $path) = @_;
     $self->{pm_path} = $path;
-    $self->{path} = $path =~ s!\.pm$!.md!r;
+    $self->{md_path} = $path =~ s!\.\w+$!.md!r;
+	$self->{name} = ($path =~ s!^lib/(.*)\.\w+$!$1!r) =~ s!/!-!gr;
     $self
 }
 
 sub as_markdown {
     my ($self) = @_;
 
-    my $md = read_text $self->{path};
-    my $pm = read_text $self->{pm_path};
+    my $md = $self->read_md;
+    my $pm = $self->read_pm;
 
+    my $pm_version = $self->pm_version;
     my $v = uc "version";
     my ($md_version) = $md =~ /^#[ \t]+$v\s+([\w.-]{1,32})\s/m;
-    my ($pm_version) = $pm =~ /^our\s+\$$v\s*=\s*["']?([\w.-]{1,32})/m;
     my ($hd_version) = $pm =~ /^=head1[ \t]+VERSION\s+([\w.-]{1,32})\s/m;
 
     if(defined $pm_version and defined $md_version and $pm_version ne $md_version) {
         $md =~ s/(#[ \t]+$v\s+)[\w.-]{1,32}(\s)/$1$pm_version$2/;
-        write_text $self->{path}, $md;
+        write_text $self->{md_path}, $md;
     }
 
     if(defined $pm_version and defined $hd_version and $pm_version ne $hd_version) {
@@ -35,10 +36,76 @@ sub as_markdown {
         write_text $self->{pm_path}, $pm;
     }
 
-    $md =~ s/^!\w+:\w+\s+//;
+    $md =~ s/^!\w+:\w+(,\w+)*\s+/$self->parse_options($&)/e;
 
     $md
 }
+
+# parse !options on first line
+sub parse_options {
+	my ($self, $options) = @_;
+	
+	$options =~ s/^!//;
+	$options =~ s/\s*$//;
+	$options =~ s/^\w+:\w+,?//;
+	my @options = map { $_ eq "badges"? qw/github-actions metacpan cover/: $_ } split /,/, $options;
+	
+	$options = join " ", map {
+		if($_ eq 'github-actions') {
+			my $github = $self->github_path;
+			"[![Actions Status](https://github.com/$github/actions/workflows/test.yml/badge.svg)](https://github.com/$github/actions)"
+		}
+		elsif($_ eq 'metacpan') {
+			my $name = $self->{name};
+			"[![MetaCPAN Release](https://badge.fury.io/pl/$name.svg)](https://metacpan.org/release/$name)";
+		}
+		elsif($_ eq 'cover') {
+			my $github = $self->github_path;
+			my $name = $self->{name};
+			my $version = $self->pm_version;
+			"[![Coverage](https://raw.githubusercontent.com/$github/master/doc/badges/total.svg)](https://fast2-matrix.cpantesters.org/?dist=$name+$version)";
+		}
+		# elsif ($_ eq 'kwalitee') {
+			# "[![Kwalitee](https://cpants.cpanauthors.org/release/DART/Liveman-3.2.svg)";
+		# }
+		else { () }
+	} @options;
+	
+	$options? "$options\n": ""
+}
+
+# path project on github
+sub github_path {
+	my ($self) = @_;
+	return $self->{github_path} if exists $self->{github_path};
+	for my $r (split /\n/, `git remote -v`) {
+		$self->{github_path} = $1, last if $r =~ m!git\@github\.com:(.*?)\.git!;
+	}
+	$self->{github_path} //= "???";
+}
+
+sub read_md {
+	my ($self) = @_;
+	return $self->{read_md} if exists $self->{read_md};
+	$self->{read_md} = read_text($self->{md_path});
+	$self->{read_md}
+}
+
+sub read_pm {
+	my ($self) = @_;
+	return $self->{read_pm} if exists $self->{read_pm};
+	$self->{read_pm} = read_text($self->{pm_path});
+	$self->{read_pm}
+}
+
+sub pm_version {
+	my ($self) = @_;
+	return $self->{pm_version} if exists $self->{pm_version};
+	my $v = uc "version";
+	($self->{pm_version}) = $self->read_pm =~ /^our\s+\$$v\s*=\s*["']?([\w.-]{1,32})/m;
+	$self->{pm_version} //= '???';
+}
+
 
 1;
 
@@ -48,7 +115,7 @@ __END__
 
 =head1 NAME
 
-Liveman :: Minillapod2markdown - a plug for minilla, which throws Lib/Mainmodule.md to Readme.md
+Liveman::Minillapod2markdown - a plug for minilla, which throws Lib/Mainmodule.md to Readme.md
 
 =head1 SYNOPSIS
 
@@ -63,13 +130,14 @@ Liveman :: Minillapod2markdown - a plug for minilla, which throws Lib/Mainmodule
 	write_text "X.pm", "our \$VERSION = 1.0;";
 	
 	$mark->parse_from_file("X.pm");
-	$mark->{path}  # => X.md
+	$mark->{pm_path}  # => X.pm
+	$mark->{md_path}  # => X.md
 	
 	$mark->as_markdown  # => hi!
 
 =head1 DESCRIPION
 
-Add the C<Markdown_maker =" Liveman :: Minillapod2markdown "> Minil.tomlC<"Liveman: Minilla will not create> readme.mdC<from the POD-documenting of the main module, and will take from the same name next to the extension>*.MD`.
+Add the C<Markdown_maker = "Liveman::MinillaPod2Markdown"> to C<minil.toml>, and Minilla will not create C<README.md> from the POD-documenting of the main module, and will take from the same name next to the extension C<*.md>.
 
 =head1 SUBROUTINES
 
@@ -84,6 +152,48 @@ Constructor.
 =head2 parse_from_file ($path)
 
 Plug.
+
+=head2 parse_options ($options)
+
+Parses! Options on the first line:
+
+=over
+
+=item 1. Removes! And languages behind him.
+
+=item 2. He translates the badge through a comma into a Markdown picture.
+
+=back
+
+Badge List:
+
+=over
+
+=item 1. Badges - all badges.
+
+=item 2. Github -Actions - Baig for githab tests.
+
+=item 3. Metacpan - badge for release.
+
+=item 4. Cover - Baig to coating that creates C<Liveman> when passing the dough inC<doc/badges/total.svg>.
+
+=back
+
+=head2 github_path ()
+
+The project path to GitHub: username/repository.
+
+=head2 read_md ()
+
+Reads a file with MarkDown-documentation.
+
+=head2 read_pm ()
+
+Reads the module.
+
+=head2 pm_version ()
+
+The version of the module.
 
 =head1 INSTALL
 

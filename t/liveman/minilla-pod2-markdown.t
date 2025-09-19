@@ -17,7 +17,8 @@ write_text "X.md", "hi!";
 write_text "X.pm", "our \$VERSION = 1.0;";
 
 $mark->parse_from_file("X.pm");
-::is scalar do {$mark->{path}}, "X.md", '$mark->{path}  # => X.md';
+::is scalar do {$mark->{pm_path}}, "X.pm", '$mark->{pm_path}  # => X.pm';
+::is scalar do {$mark->{md_path}}, "X.md", '$mark->{md_path}  # => X.md';
 
 ::is scalar do {$mark->as_markdown}, "hi!", '$mark->as_markdown  # => hi!';
 
@@ -39,6 +40,36 @@ $mark->parse_from_file("X.pm");
 # ## parse_from_file ($path)
 # 
 # Заглушка.
+# 
+# ## parse_options ($options)
+# 
+# Парсит !options на первой строке:
+# 
+# 1. Удаляет ! и языки за ним.
+# 2. Переводит бейджи через запятую в markdown-картинки.
+# 
+# Список бейджей:
+# 
+# 1. badges - все бейджи.
+# 2. github-actions - бейдж на тесты гитхаба.
+# 3. metacpan - бейдж на релиз.
+# 4. cover - бейдж на покрытие который создаёт `liveman` при прохождении теста в `doc/badges/total.svg`.
+# 
+# ## github_path ()
+# 
+# Путь проекта на github: username/repository.
+# 
+# ## read_md ()
+# 
+# Считывает файл с markdown-документацией.
+# 
+# ## read_pm ()
+# 
+# Считывает модуль.
+# 
+# ## pm_version ()
+# 
+# Версия модуля.
 # 
 # # INSTALL
 # 

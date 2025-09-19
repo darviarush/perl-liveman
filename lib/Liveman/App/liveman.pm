@@ -1,8 +1,6 @@
-package App::liveman;
+package Liveman::App::liveman;
 use 5.22.0;
 use common::sense;
-
-our $VERSION = "3.2";
 
 use Getopt::Long qw(:config no_ignore_case bundling);
 use Pod::Usage;
@@ -88,14 +86,14 @@ This means that the examples in the documentation may not work, and the document
 
 The method of simultaneous documentation and testing solves this problem.
 
-For the documentation, the I<* MD I<< > format was selected, since it is the most simple for input and widespread.
-The areas of code I< >> perl I<< > described in it are broadcast into a test. The documentation is translated into I< >> pod I<< > and is added to the I< >> \ I<_ end _> *> section of the perl module.
+For the documentation, the B<md> format was selected, since it is the most simple for input and widespread.
+The areas of code B<perl> described in it are broadcast into a test. The documentation is translated into B<pod> and is added to the B<__END__> section of the perl module.
 
-In other words, I<* Liveman I<< > converts I<< * Lib/**. MD B<-files to test files (> t/**. T * >>) and documentation that is placed in the corresponding I< >> Lib/**. PM *> module. And immediately launches the tests with coating.
+In other words, B<liveman> converts B<lib/**.md>-files to test files (B<t/**.t>) and documentation that is placed in the corresponding B<lib/**.pm> module. And immediately launches the tests with coating.
 
-The coating can be viewed in the *Cover_DB/Coverage.html *file.
+The coating can be viewed in the I<*cover_db/coverage.html> file.
 
-Note: it is better to immediately place *coctor_db/ *in *.gitignore *.
+Note: it is better to immediately place I<cover_db/> in I<.gitignore>.
 
 =head1 OPTIONS
 
@@ -119,11 +117,11 @@ Only compile (without starting the tests).
 
 B<-f>, B<--force>
 
-Convert the*Lib/**. MD*files, even if they have not changed.
+Convert the I<lib/**.md> files, even if they have not changed.
 
 B<-p>, B<--prove>
 
-Use the C<Prove> utility for tests, notC<yath>.
+Use the C<prove> utility for tests, not C<yath>.
 
 B<-o>, B<--open>
 
@@ -131,17 +129,17 @@ Open the coating in the browser.
 
 B<-O>, B<--options> OPTIONS
 
-Transfer the line with the options C<yath> orC<Prove>. These parameters will be added to the default parameters.
+Transfer the line with the options C<yath> or C<prove>. These parameters will be added to the default parameters.
 
 Default parameters for C<yath>:
 
  C<yath test -j4 --cover>
 
-Default parameters for C<Prove>:
+Default parameters for C<prove>:
 
  C<prove -Ilib -r t>
 
-I<I<< -A I<< >, * >>-Append * >>
+B<-a>, B<--append>
 
 Add functions in C<*.md> fromC<*.pm> and end.
 
@@ -151,23 +149,15 @@ Create a new repository.
 
 =over
 
-=item * =over
+=item * I<PACKAGE> - this is the name of the new package, for example, C<Aion::View>.
 
-=item * Package * - this is the name of the new package, for example, C<Aion :: view>.
-
-=back
-
-=item * =over
-
-=item * License * is a license name, for example, GPLV3 or Perl_5.
-
-=back
+=item * I<License> is a license name, for example, GPLv3 or perl_5.
 
 =back
 
 =head1 INSTALL
 
-To install this module in your system, follow the following [command] (https://metacpan.org/pod/app:::
+To install this module in your system, follow the following L<App::cpm>
 
 	sudo cpm install -gvv Liveman
 
@@ -177,7 +167,7 @@ Yaroslav O. Kosmina L<mailto:dart@cpan.org>
 
 =head1 LICENSE
 
-⚖ I<* gplv3 *>
+⚖ B<GPLv3>
 
 =head1 COPYRIGHT
 
