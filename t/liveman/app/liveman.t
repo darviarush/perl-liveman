@@ -36,7 +36,7 @@ use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename q
 # Показать версию и выйти.
 # 
 subtest 'OPTIONS' => sub { 
-::like scalar do {`script/liveman -v`}, qr!^\d+\.\d+$!, '`script/liveman -v` # ~> ^\d+\.\d+$';
+::like scalar do {`perl -e '\$ARGV[1] = -v; require Liveman::App::liveman'`}, qr!^\d+\.\d+$!, '`perl -e \'\$ARGV[1] = -v; require Liveman::App::liveman\'` # ~> ^\d+\.\d+$';
 
 # 
 # **--man**

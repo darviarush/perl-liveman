@@ -35,6 +35,10 @@ liveman [-h] [--man] [-A pkg [license]] [-w] [-o][-c][-f][-s][-a] [<files> ...]
 
 Показать версию и выйти.
 
+```perl
+`perl -e '\$ARGV[1] = -v; require Liveman::App::liveman'` # ~> ^\d+\.\d+$
+```
+
 **--man**
 
 Распечатать инструкцию и завершиться.
