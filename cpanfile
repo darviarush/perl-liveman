@@ -16,7 +16,6 @@ on 'test' => sub {
 requires 'App::Prove';
 requires 'App::Yath';
 requires 'common::sense', '3.75';
-requires 'Badge::Simple', '0.04';
 requires 'Data::UUID', '1.226';
 requires 'Devel::Cover', '1.40';
 requires 'Carp', '1.54';
