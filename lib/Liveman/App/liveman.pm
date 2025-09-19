@@ -106,8 +106,7 @@ B<-v>, B<--version>
 
 Show the version and go out.
 
-	$ENV{PATH} = "$ENV{PATH}:script/";
-	`liveman -v` # ~> ^\d+\.\d+$
+	`script/liveman -v` # ~> ^\d+\.\d+$
 
 B<--man>
 
