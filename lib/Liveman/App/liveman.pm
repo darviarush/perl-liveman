@@ -1,5 +1,6 @@
 package Liveman::App::liveman;
 use 5.22.0;
+use open qw/:std :utf8/;
 use common::sense;
 
 use Getopt::Long qw(:config no_ignore_case bundling);
@@ -34,7 +35,7 @@ elsif ($help) {
     );
 }
 elsif ($version) {
-    print $Liveman::VERSION, "\n";
+    print Liveman->VERSION, "\n";
 }
 elsif ($man) {
     pod2usage(
@@ -105,6 +106,7 @@ B<-v>, B<--version>
 
 Show the version and go out.
 
+	$ENV{PATH} = "$ENV{PATH}:script/";
 	`liveman -v` # ~> ^\d+\.\d+$
 
 B<--man>
