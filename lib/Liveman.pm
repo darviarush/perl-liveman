@@ -423,33 +423,42 @@ sub tests {
     my $cover = "/usr/bin/site_perl/cover";
     $cover = 'cover' if !-e $cover;
 
-    my $yath = "/usr/bin/site_perl/yath";
-    $yath = 'yath' if !-e $yath;
+	my $yath; my $prove;
+	my $use_prove = $self->{prove};
+	if($use_prove) {
+		$prove = "/usr/bin/site_perl/prove";
+		$prove = 'prove' if !-e $prove;
+	} else {
+		$yath = "/usr/bin/site_perl/yath";
+		$yath = 'yath' if !-e $yath;
+	}
 
     my $options = $self->{options};
 
     if($self->{files}) {
         my @tests = map $self->test_path($_), @{$self->{files}};
         local $, = " ";
-        $self->{exit_code} = system $self->{prove}
-            ? "prove -Ilib $options @tests"
+        $self->{exit_code} = system $use_prove
+            ? "$prove -Ilib $options @tests"
             : "$yath test -j4 $options @tests";
         return $self;
     }
 
     my $perl5opt = $ENV{PERL5OPT};
-
-    system "$cover -delete";
-    if($self->{prove}) {
-        local $ENV{PERL5OPT} = "$perl5opt -MDevel::Cover";
-        $self->{exit_code} = system "prove -Ilib -r t $options";
-        #$self->{exit_code} = system "prove --exec 'echo `pwd`/lib && perl -MDevel::Cover -I`pwd`/lib' -r t";
-    } else {
-        $self->{exit_code} = system "$yath test -j4 --cover $options";
-    }
-    return $self if $self->{exit_code};
-    system "$cover -report html_basic";
-    system "(opera cover_db/coverage.html || xdg-open cover_db/coverage.html) &> /dev/null" if $self->{open};
+	{
+		local $ENV{PERL5OPT};
+		system "$cover -delete";
+		if($use_prove) {
+			local $ENV{PERL5OPT} = "$perl5opt -MDevel::Cover";
+			$self->{exit_code} = system "$prove -Ilib -r t $options";
+			#$self->{exit_code} = system "prove --exec 'echo `pwd`/lib && perl -MDevel::Cover -I`pwd`/lib' -r t";
+		} else {
+			$self->{exit_code} = system "$yath test -j4 --cover $options";
+		}
+		return $self if $self->{exit_code};
+		system "$cover -report html_basic";
+		system "(opera cover_db/coverage.html || xdg-open cover_db/coverage.html) &> /dev/null" if $self->{open};
+	}
 
     require Liveman::CoverBadge;
     eval {
@@ -501,9 +510,9 @@ Liveman - компиллятор из markdown в тесты и документ
 	
 	Liveman->new(compile_force => 1)->transforms->{count} # => 1
 	
-	my $yath_return_code = $liveman->tests->{exit_code};
+	my $prove_return_code = $liveman->tests->{exit_code};
 	
-	$yath_return_code           # => 0
+	$prove_return_code           # => 0
 	-f "cover_db/coverage.html" # => 1
 
 =head1 DESCRIPION

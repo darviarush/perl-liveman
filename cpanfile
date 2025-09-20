@@ -13,8 +13,9 @@ on 'test' => sub {
     requires 'Scalar::Util';
 };
 
+recommends 'App::Yath' unless $^O eq 'MSWin32';
+
 requires 'App::Prove';
-requires 'App::Yath';
 requires 'common::sense', '3.75';
 requires 'Data::UUID', '1.226';
 requires 'Devel::Cover', '1.40';

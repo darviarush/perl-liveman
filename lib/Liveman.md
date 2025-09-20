@@ -34,9 +34,9 @@ $liveman->{count}   # => 0
 
 Liveman->new(compile_force => 1)->transforms->{count} # => 1
 
-my $yath_return_code = $liveman->tests->{exit_code};
+my $prove_return_code = $liveman->tests->{exit_code};
 
-$yath_return_code           # => 0
+$prove_return_code           # => 0
 -f "cover_db/coverage.html" # => 1
 ```
 

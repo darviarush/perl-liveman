@@ -34,9 +34,9 @@ $liveman->transforms;
 
 ::is scalar do {Liveman->new(compile_force => 1)->transforms->{count}}, "1", 'Liveman->new(compile_force => 1)->transforms->{count} # => 1';
 
-my $yath_return_code = $liveman->tests->{exit_code};
+my $prove_return_code = $liveman->tests->{exit_code};
 
-::is scalar do {$yath_return_code}, "0", '$yath_return_code           # => 0';
+::is scalar do {$prove_return_code}, "0", '$prove_return_code           # => 0';
 ::is scalar do {-f "cover_db/coverage.html"}, "1", '-f "cover_db/coverage.html" # => 1';
 
 # 
