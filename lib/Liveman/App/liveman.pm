@@ -106,7 +106,7 @@ B<-v>, B<--version>
 
 Show the version and go out.
 
-	`perl -e '\$ARGV[1] = -v; require Liveman::App::liveman'` # ~> ^\d+\.\d+$
+	`perl $ENV{ROOT}/script/liveman -v` # ~> ^\d+\.\d+$
 
 B<--man>
 

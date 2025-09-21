@@ -320,7 +320,8 @@ sub transform {
     push @test, "\n\tdone_testing;\n};\n" if $close_subtest;
     push @test, "\ndone_testing;\n";
 
-    my @pwd_dirs = File::Spec->splitdir(getcwd());
+	my $root = getcwd();
+    my @pwd_dirs = File::Spec->splitdir($root);
     my $project_name = $pwd_dirs[$#pwd_dirs];
 
     my @test_dirs = File::Spec->splitdir($test);
@@ -334,7 +335,7 @@ sub transform {
     local $ENV{TMPDIR}; # yath устанавливает свою TMPDIR, нам этого не надо
     my $test_path = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs));
 
-    my $test_head1 = << 'END';
+    my $test_head = << 'END';
 use common::sense;
 use open qw/:std :utf8/;
 
@@ -360,15 +361,18 @@ BEGIN {
     };
 
     my $t = File::Slurper::read_text(__FILE__);
-    my $s = 
-END
+    my $s = '%(TEST_DIR)';
 
-my $test_head2 = << 'END2';
-    ;
     File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;
-    File::Path::mkpath($s);
-    chdir $s or die "chdir $s: $!";
-    push @INC, "lib";
+
+	File::Path::mkpath($s);
+
+	chdir $s or die "chdir $s: $!";
+
+	push @INC, '%(PROJECT_DIR)/lib', 'lib';
+	
+	$ENV{PROJECT_DIR} = '%(PROJECT_DIR)';
+	$ENV{TEST_DIR} = $s;
 
     while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {
         my ($file, $code) = ($1, $2);
@@ -376,14 +380,18 @@ my $test_head2 = << 'END2';
         File::Path::mkpath(File::Basename::dirname($file));
         File::Slurper::write_text($file, $code);
     }
-
 }
-END2
+END
 
-    $test_head1 =~ y!\r\n!  !;
-    $test_head2 =~ y!\r\n!  !;
+    $test_head =~ y!\r\n!  !;
+	
+	my %inter = (
+		TEST_DIR => _q_esc($test_path),
+		PROJECT_DIR => _q_esc($root),
+	);
+	$test_head =~ s/%\((\w+)\)/$inter{$1}/ge;
 
-    write_text $test, join "", $test_head1, "'", _q_esc($test_path), "'", $test_head2, @test;
+    write_text $test, join "", $test_head, @test;
 
     # Создаём модуль, если его нет
     my $pm = $md =~ s/\.md$/.pm/r;
