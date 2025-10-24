@@ -204,7 +204,7 @@ sudo cpm install -gvv $pkg
 
 # AUTHOR
 
-$author [$email](mailto:$email)
+$author <$email>
 
 # LICENSE
 

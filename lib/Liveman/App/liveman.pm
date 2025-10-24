@@ -74,7 +74,7 @@ __END__
 
 =head1 NAME
 
-Liveman - “Living Guide”. Utility for converting files I<* Lib/**. Md *> in test files (I<< * t/**. T B<) and documentation (> pod B<), which is placed in the corresponding module (> Lib/*. PM * >>)
+"Liveman - “Living Guide”. Utility for converting files B<lib/**.md> in test files (B<t/**.t>) and documentation (B<POD>), which is placed in the corresponding module (B<lib/**.pm>)
 
 =head1 SYNOPSIS
 
@@ -106,7 +106,7 @@ B<-v>, B<--version>
 
 Show the version and go out.
 
-	`perl $ENV{ROOT}/script/liveman -v` # ~> ^\d+\.\d+$
+	`perl $ENV{PROJECT_DIR}/script/liveman -v` # ~> ^\d+\.\d+$
 
 B<--man>
 

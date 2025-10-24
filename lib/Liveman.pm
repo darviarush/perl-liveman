@@ -122,8 +122,8 @@ sub _to_testing {
     elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
     elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
     elsif(exists $x{qis})  { my $ex = _q_esc($expected);  "::is scalar do {$code}, '$ex', '$q';\n" }
-    elsif(exists $x{like})  { my $ex = _qr_esc($expected);  "::like scalar do {$code}, qr!$ex!, '$q';\n" }
-    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected);  "::unlike scalar do {$code}, qr!$ex!, '$q';\n" }
+    elsif(exists $x{like})  { my $ex = _qr_esc($expected);  "::like scalar do {$code}, qr{$ex}, '$q';\n" }
+    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected);  "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
     else { # Что-то ужасное вырвалось на волю!
         "???"
     }
@@ -303,13 +303,21 @@ sub transform {
         } elsif($sec1 =~ /^```(?:perl)?[ \t]*$/) {
 
             if($use_title ne $title) {
-                push @test, "done_testing; }; " if $close_subtest;
+                push @test, "::done_testing; }; " if $close_subtest;
                 $close_subtest = 1;
                 push @test, "subtest '${\ _q_esc($title)}' => sub { ";
                 $use_title = $title;
             }
 
-            my $test = $code =~ s{^(?<code>.*)#[ \t]*((?<is_deeply>-->|⟶)|(?<is>->|→)|(?<qqis>=>|⇒)|(?<qis>\\>|↦)|(?<like>~>|↬)|(?<unlike><~|↫))\s*(?<expected>.+?)[ \t]*\n}{ _to_testing($&, %+) }grme;
+            my $test = $code =~ s{^ (?<code> .* ) \# [\ \t]* (
+            	(?<is_deeply> --> | ⟶ )
+	            |(?<is>        -> | → )
+	            |(?<qqis>      => | ⇒ )
+	            |(?<qis>       \\> | ↦)
+	            |(?<like>      ~> | ↬ )
+	            |(?<unlike>    <~ | ↫ )
+             ) \s* (?<expected> .+? ) [\ \t]* \n
+            }{ _to_testing($&, %+) }xgrme;
             push @test, "\n", $test, "\n";
         }
         else {
@@ -317,8 +325,8 @@ sub transform {
         }
     }
 
-    push @test, "\n\tdone_testing;\n};\n" if $close_subtest;
-    push @test, "\ndone_testing;\n";
+    push @test, "\n\t::done_testing;\n\};\n" if $close_subtest;
+    push @test, "\n::done_testing;\n";
 
 	my $root = getcwd();
     my @pwd_dirs = File::Spec->splitdir($root);

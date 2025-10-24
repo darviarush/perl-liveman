@@ -13,12 +13,13 @@ on 'test' => sub {
     requires 'Scalar::Util';
 };
 
-recommends 'App::Yath' unless $^O eq 'MSWin32';
+requires 'App::Yath' unless $^O eq 'MSWin32';
+
+requires 'Devel::Cover', '1.40';
 
 requires 'App::Prove';
 requires 'common::sense', '3.75';
 requires 'Data::UUID', '1.226';
-requires 'Devel::Cover', '1.40';
 requires 'Carp';
 requires 'Cwd::utf8', '0.011';
 requires 'File::Basename';

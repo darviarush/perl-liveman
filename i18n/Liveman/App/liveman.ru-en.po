@@ -1,5 +1,5 @@
 msgid "liveman - «живое руководство». Утилита для конвертации файлов **lib/\\*\\*.md** в тестовые файлы (**t/\\*\\*.t**) и документацию (**POD**), которая размещается в соответствующем модуле (**lib/\\*\\*.pm**)"
-msgstr "Liveman - “Living Guide”. Utility for converting files ** Lib/\\*\\*. Md ** in test files (** t/\\*\\*. T **) and documentation (** pod **), which is placed in the corresponding module (** Lib/\\*. PM **)"
+msgstr "\"Liveman - “Living Guide”. Utility for converting files **lib/\\*\\*.md** in test files (**t/\\*\\*.t**) and documentation (**POD**), which is placed in the corresponding module (**lib/\\*\\*.pm**)"
 
 msgid "Проблема современных проектов в том, что документация отделена от тестирования.\n"
 "Это означает, что примеры в документации могут не работать, а сама документация может отставать от кода."

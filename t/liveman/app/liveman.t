@@ -1,4 +1,4 @@
-use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s = '/tmp/.liveman/perl-liveman/liveman!app!liveman';      File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;  	File::Path::mkpath($s);  	chdir $s or die "chdir $s: $!";  	push @INC, '/ext/__/@lib/perl-liveman/lib', 'lib'; 	 	$ENV{ROOT} = '/ext/__/@lib/perl-liveman'; 	$ENV{TEST_PATH} = $s;      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     } } # 
+use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN {     $SIG{__DIE__} = sub {         my ($s) = @_;         if(ref $s) {             $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;             die $s;         } else {             die Carp::longmess defined($s)? $s: "undef"         }     };      my $t = File::Slurper::read_text(__FILE__);     my $s = '/tmp/.liveman/perl-liveman/liveman!app!liveman';      File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;  	File::Path::mkpath($s);  	chdir $s or die "chdir $s: $!";  	push @INC, '/ext/__/@lib/perl-liveman/lib', 'lib'; 	 	$ENV{PROJECT_DIR} = '/ext/__/@lib/perl-liveman'; 	$ENV{TEST_DIR} = $s;      while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {         my ($file, $code) = ($1, $2);         $code =~ s/^#>> //mg;         File::Path::mkpath(File::Basename::dirname($file));         File::Slurper::write_text($file, $code);     } } # 
 # # NAME
 # 
 # liveman - «живое руководство». Утилита для конвертации файлов **lib/\*\*.md** в тестовые файлы (**t/\*\*.t**) и документацию (**POD**), которая размещается в соответствующем модуле (**lib/\*\*.pm**)
@@ -36,7 +36,7 @@ use common::sense; use open qw/:std :utf8/;  use Carp qw//; use File::Basename q
 # Показать версию и выйти.
 # 
 subtest 'OPTIONS' => sub { 
-::like scalar do {`perl $ENV{ROOT}/script/liveman -v`}, qr!^\d+\.\d+$!, '`perl $ENV{ROOT}/script/liveman -v` # ~> ^\d+\.\d+$';
+::like scalar do {`perl $ENV{PROJECT_DIR}/script/liveman -v`}, qr!^\d+\.\d+$!, '`perl $ENV{PROJECT_DIR}/script/liveman -v` # ~> ^\d+\.\d+$';
 
 # 
 # **--man**
