@@ -19,160 +19,160 @@ use Liveman::MinillaPod2Markdown;
 
 # Конструктор
 sub new {
-    my $cls = shift;
-    my $self = bless {@_}, $cls;
-    delete $self->{files} if $self->{files} && !scalar @{$self->{files}};
+	my $cls = shift;
+	my $self = bless {@_}, $cls;
+	delete $self->{files} if $self->{files} && !scalar @{$self->{files}};
 	$self->{pod2markdown} = Liveman::MinillaPod2Markdown->new;
-    $self
+	$self
 }
 
 # Получить путь к тестовому файлу из пути к md-файлу
 sub test_path {
-    my ($self, $md) = @_;
+	my ($self, $md) = @_;
 
-    my ($volume, $chains) = File::Spec->splitpath($md, 1);
-    my @dirs = File::Spec->splitdir($chains);
+	my ($volume, $chains) = File::Spec->splitpath($md, 1);
+	my @dirs = File::Spec->splitdir($chains);
 
-    shift @dirs; # Удаляем lib
-    $dirs[$#dirs] =~ s!\.md$!\.t!;
+	shift @dirs; # Удаляем lib
+	$dirs[$#dirs] =~ s!\.md$!\.t!;
 
-    my $md = File::Spec->catfile("t", map { lcfirst($_) =~ s/[A-Z]/"-" . lc $&/gre } @dirs);
+	my $md = File::Spec->catfile("t", map { lcfirst($_) =~ s/[A-Z]/"-" . lc $&/gre } @dirs);
 
-    $md
+	$md
 }
 
 # Трансформирует md-файлы
 sub transforms {
-    my ($self) = @_;
-    my $mds = $self->{files} // [ find_wanted(sub { /\.md$/ }, "lib") ];
+	my ($self) = @_;
+	my $mds = $self->{files} // [ find_wanted(sub { /\.md$/ }, "lib") ];
 
-    $self->{count} = 0;
+	$self->{count} = 0;
 
-    if($self->{compile_force}) {
-        $self->transform($_) for @$mds;
-    } else {
-        for my $md (@$mds) {
-            my $test = $self->test_path($md);
-            my $mdmtime = (stat $md)[9];
-            die "Not exists file $md!" if !$mdmtime;
-            $self->transform($md, $test) if !-e $test
-                || $mdmtime > (stat $test)[9];
-        }
-    }
+	if($self->{compile_force}) {
+		$self->transform($_) for @$mds;
+	} else {
+		for my $md (@$mds) {
+			my $test = $self->test_path($md);
+			my $mdmtime = (stat $md)[9];
+			die "Not exists file $md!" if !$mdmtime;
+			$self->transform($md, $test) if !-e $test
+				|| $mdmtime > (stat $test)[9];
+		}
+	}
 
-    # minil.toml и README.md
-    if(-f "minil.toml" && -r "minil.toml") {
-        my $is_copy; my $name;
-        eval {
-            my $minil = read_text("minil.toml");
-            ($name) = $minil =~ /^name\s*=\s*"([\w:-]+)"/m;
-            $name =~ s!(-|::)!/!g;
-            $name = "lib/$name.md";
-            if(-f $name && -r $name) {
-                if(!-e "README.md" || $self->{compile_force} || (stat $name)[9] > (stat "README.md")[9]) {
-                    my $readme = $self->{pod2markdown}->parse_from_file($name =~ s/\.\w+$/.pm/r)->as_markdown;
-                    write_text "README.md", $readme;
-                    $is_copy = 1;
-                }
-            }
-        };
-        if($@) {warn colored("minil.toml", 'red') . ": $@"}
-        elsif($is_copy) {
-            print colored(" ^‥^", "bright_black"), " $name ", colored("-->", "bright_black"), " README.md ", colored("...", "bright_white"), " ", colored("ok", "bright_green"), "\n";
-        }
-    }
+	# minil.toml и README.md
+	if(-f "minil.toml" && -r "minil.toml") {
+		my $is_copy; my $name;
+		eval {
+			my $minil = read_text("minil.toml");
+			($name) = $minil =~ /^name\s*=\s*"([\w:-]+)"/m;
+			$name =~ s!(-|::)!/!g;
+			$name = "lib/$name.md";
+			if(-f $name && -r $name) {
+				if(!-e "README.md" || $self->{compile_force} || (stat $name)[9] > (stat "README.md")[9]) {
+					my $readme = $self->{pod2markdown}->parse_from_file($name =~ s/\.\w+$/.pm/r)->as_markdown;
+					write_text "README.md", $readme;
+					$is_copy = 1;
+				}
+			}
+		};
+		if($@) {warn colored("minil.toml", 'red') . ": $@"}
+		elsif($is_copy) {
+			print colored(" ^‥^", "bright_black"), " $name ", colored("-->", "bright_black"), " README.md ", colored("...", "bright_white"), " ", colored("ok", "bright_green"), "\n";
+		}
+	}
 
-    $self
+	$self
 }
 
 # Эскейпинг для qr!!
 sub _qr_esc {
-    $_[0] =~ s/!/\\!/gr
+	$_[0] =~ s/!/\\!/gr
 }
 
 # Эскейпинг для строки в двойных кавычках
 sub _qq_esc {
-    $_[0] =~ s!"!\\"!gr
+	$_[0] =~ s!"!\\"!gr
 }
 
 # Эскейпинг для строки в одинарных кавычках
 sub _q_esc {
-    $_[0] =~ s!'!\\'!gr
+	$_[0] =~ s!'!\\'!gr
 }
 
 # Строка кода для тестирования
 sub _to_testing {
-    my ($line, %x) = @_;
+	my ($line, %x) = @_;
 
-    return $x{code} if $x{code} =~ /^\s*#/;
+	return $x{code} if $x{code} =~ /^\s*#/;
 
-    my $expected = $x{expected};
-    my $q = _q_esc($line =~ s!\s*$!!r);
-    my $code = trim($x{code});
+	my $expected = $x{expected};
+	my $q = _q_esc($line =~ s!\s*$!!r);
+	my $code = trim($x{code});
 
-    if(exists $x{is_deeply}) { "::is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
-    elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
-    elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
-    elsif(exists $x{qis})  { my $ex = _q_esc($expected); "::is scalar do {$code}, '$ex', '$q';\n" }
-    elsif(exists $x{like})  { my $ex = _qr_esc($expected); "::like scalar do {$code}, qr{$ex}, '$q';\n" }
-    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected); "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
-    elsif(exists $x{qqbegins})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
-    elsif(exists $x{qqends})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta(\"$ex\") . '\$', '$q';\n" }
-    elsif(exists $x{qqinners})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta \"$ex\", '$q';\n" }
-    elsif(exists $x{begins})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta '$ex', '$q';\n" }
-    elsif(exists $x{ends})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta('$ex') . '\$', '$q';\n" }
-    elsif(exists $x{inners})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta '$ex', '$q';\n" }
-    elsif(exists $x{error})  { my $ex = _q_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta '$ex', '$q';\n" }
-    elsif(exists $x{qqerror})  { my $ex = _qq_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
-    else { # Что-то ужасное вырвалось на волю!
-        "???"
-    }
+	if(exists $x{is_deeply}) { "::is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
+	elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
+	elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
+	elsif(exists $x{qis})  { my $ex = _q_esc($expected); "::is scalar do {$code}, '$ex', '$q';\n" }
+	elsif(exists $x{like})  { my $ex = _qr_esc($expected); "::like scalar do {$code}, qr{$ex}, '$q';\n" }
+	elsif(exists $x{unlike})  { my $ex = _qr_esc($expected); "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
+	elsif(exists $x{qqbegins})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
+	elsif(exists $x{qqends})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta(\"$ex\") . '\$', '$q';\n" }
+	elsif(exists $x{qqinners})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta \"$ex\", '$q';\n" }
+	elsif(exists $x{begins})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta '$ex', '$q';\n" }
+	elsif(exists $x{ends})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta('$ex') . '\$', '$q';\n" }
+	elsif(exists $x{inners})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta '$ex', '$q';\n" }
+	elsif(exists $x{error})  { my $ex = _q_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta '$ex', '$q';\n" }
+	elsif(exists $x{qqerror})  { my $ex = _qq_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
+	else { # Что-то ужасное вырвалось на волю!
+		"???"
+	}
 }
 
 # Обрезает строки вначале и все пробельные символы в конце
 sub _first_line_trim ($) {
 	local ($_) = @_;
-    s/^([\t ]*\n)*//;
-    s/\s*$//;
-    $_
+	s/^([\t ]*\n)*//;
+	s/\s*$//;
+	$_
 }
 
 # Преобразует из строчного формата
 sub _from_str ($) {
-    local ($_) = @_;
-    s/^"(.*)"$/$1/s;
-    s/\\(.)/ $1 eq "n"? "\n": $1 eq "t"? "\t": $1 /ge;
-    $_
+	local ($_) = @_;
+	s/^"(.*)"$/$1/s;
+	s/\\(.)/ $1 eq "n"? "\n": $1 eq "t"? "\t": $1 /ge;
+	$_
 }
 
 # Загрузка po
 sub load_po {
 	my ($self, $md, $from, $to) = @_;
 
-    @$self{qw/from to/} = ($from, $to);
+	@$self{qw/from to/} = ($from, $to);
 
-    return $self unless $md;
+	return $self unless $md;
 
-    my ($volume, $chains) = File::Spec->splitpath($md, 1);
-    my @dirs = File::Spec->splitdir($chains);
-    $dirs[0] = 'i18n'; # Удаляем lib
-    $dirs[$#dirs] =~ s!\.md$!\.$from-$to.po!;
+	my ($volume, $chains) = File::Spec->splitpath($md, 1);
+	my @dirs = File::Spec->splitdir($chains);
+	$dirs[0] = 'i18n'; # Удаляем lib
+	$dirs[$#dirs] =~ s!\.md$!\.$from-$to.po!;
 
-    $self->{po_file} = File::Spec->catfile(@dirs);
-    my $i18n = File::Spec->catfile(@dirs[0..$#dirs-1]);
-    mkpath($i18n);
+	$self->{po_file} = File::Spec->catfile(@dirs);
+	my $i18n = File::Spec->catfile(@dirs[0..$#dirs-1]);
+	mkpath($i18n);
 
-    my $manager = $self->{po_manager} = Locale::PO->new;
-    my $po = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
+	my $manager = $self->{po_manager} = Locale::PO->new;
+	my $po = -e $self->{po_file}? $manager->load_file_ashash($self->{po_file}, "utf8"): {};
 
-    my %po;
-    my $lineno = 0;
-    for(keys %$po) {
-        my $val = $po->{$_};
-        $po{_first_line_trim(_from_str($_))} = $val;
-    }
-    
-    $self->{po} = \%po;
+	my %po;
+	my $lineno = 0;
+	for(keys %$po) {
+		my $val = $po->{$_};
+		$po{_first_line_trim(_from_str($_))} = $val;
+	}
+	
+	$self->{po} = \%po;
 
 	$self
 }
@@ -181,11 +181,11 @@ sub load_po {
 sub save_po {
 	my ($self) = @_;
 	
-    return $self unless $self->{from};
+	return $self unless $self->{from};
 
-    my @po = grep $_->{__used}, sort { $a->{loaded_line_number} <=> $b->{loaded_line_number} } values %{$self->{po}};
+	my @po = grep $_->{__used}, sort { $a->{loaded_line_number} <=> $b->{loaded_line_number} } values %{$self->{po}};
 
-    $self->{po_manager}->save_file_fromarray($self->{po_file}, \@po, "utf8");
+	$self->{po_manager}->save_file_fromarray($self->{po_file}, \@po, "utf8");
 
 	$self
 }
@@ -194,45 +194,45 @@ sub save_po {
 sub trans {
 	my ($self, $text, $lineno) = @_;
 
-    $text = _first_line_trim($text);
+	$text = _first_line_trim($text);
 
-    return $text if $text eq "";
-    return $text if $self->{from} eq "ru" && $text =~ /^[\x00-\x7F]*$/a;
+	return $text if $text eq "";
+	return $text if $self->{from} eq "ru" && $text =~ /^[\x00-\x7F]*$/a;
 
-    my $po = $self->{po}{$text};
-    $po->{__used} = 1, $po->loaded_line_number($lineno), return _from_str($po->msgstr) if defined $po;
+	my $po = $self->{po}{$text};
+	$po->{__used} = 1, $po->loaded_line_number($lineno), return _from_str($po->msgstr) if defined $po;
 
-    my $dir = File::Spec->catfile(File::Spec->tmpdir, ".liveman");
-    mkpath($dir);
-    my $trans_from = File::Spec->catfile($dir, $self->{from});
-    my $trans_to = File::Spec->catfile($dir, $self->{to});
+	my $dir = File::Spec->catfile(File::Spec->tmpdir, ".liveman");
+	mkpath($dir);
+	my $trans_from = File::Spec->catfile($dir, $self->{from});
+	my $trans_to = File::Spec->catfile($dir, $self->{to});
 
-    write_text($trans_from, $text);
+	write_text($trans_from, $text);
 
-    my @progress = qw/\\ | \/ -/;
-    print $progress[$self->{trans_i}++ % @progress], "\033[D";
+	my @progress = qw/\\ | \/ -/;
+	print $progress[$self->{trans_i}++ % @progress], "\033[D";
 
-    my $cmd = "trans -no-auto -b $self->{from}:$self->{to} < $trans_from > $trans_to";
-    if(system $cmd) {
-        die "$cmd: failed to execute: $!" if $? == -1;
-        die printf "%s: child died with signal %d, %s coredump",
-            $cmd, ($? & 127), ($? & 128) ? 'with' : 'without'
-                if $? & 127;
-        die printf "%s: child exited with value %d", $cmd, $? >> 8;
-    }
+	my $cmd = "trans -no-auto -b $self->{from}:$self->{to} < $trans_from > $trans_to";
+	if(system $cmd) {
+		die "$cmd: failed to execute: $!" if $? == -1;
+		die printf "%s: child died with signal %d, %s coredump",
+			$cmd, ($? & 127), ($? & 128) ? 'with' : 'without'
+				if $? & 127;
+		die printf "%s: child exited with value %d", $cmd, $? >> 8;
+	}
 
-    my $trans = _first_line_trim(read_text($trans_to));
+	my $trans = _first_line_trim(read_text($trans_to));
 
-    $po = Locale::PO->new(
-        -msgid => $text,
-        -msgstr => $trans,
-        -loaded_line_number => $lineno,
-    );
+	$po = Locale::PO->new(
+		-msgid => $text,
+		-msgstr => $trans,
+		-loaded_line_number => $lineno,
+	);
 
-    $po->{__used} = 1;
-    $self->{po}{$text} = $po;
+	$po->{__used} = 1;
+	$self->{po}{$text} = $po;
 
-    $trans
+	$trans
 }
 
 # Заголовки не переводим
@@ -240,17 +240,17 @@ sub trans {
 sub trans_paragraph {
 	my ($self, $paragraph, $lineno) = @_;
 
-    join "", map {
-        /^(#|\s*$)/n ? $_: join "", "\n", $self->trans(_first_line_trim($_), $lineno += 0.001), "\n\n"
-    } split /((?:[\t\ ]*\n){2,})/, $paragraph
+	join "", map {
+		/^(#|\s*$)/n ? $_: join "", "\n", $self->trans(_first_line_trim($_), $lineno += 0.001), "\n\n"
+	} split /((?:[\t\ ]*\n){2,})/, $paragraph
 }
 
 # Переводит markdown в pod
 sub markdown2pod {
 	my ($self, $markdown) = @_;
-    local $_ = markdown_to_pod($markdown);
-    s/([\t ])(<[\w:]+>)/$1L$2/g;
-    s!L+<https://metacpan.org/pod/([\w:]+)>!L<$1>!ag;
+	local $_ = markdown_to_pod($markdown);
+	s/([\t ])(<[\w:]+>)/$1L$2/g;
+	s!L+<https://metacpan.org/pod/([\w:]+)>!L<$1>!ag;
 	$_
 }
 
@@ -259,6 +259,7 @@ use common::sense;
 use open qw/:std :utf8/;
 
 use Carp qw//;
+use Cwd qw//;
 use File::Basename qw//;
 use File::Find qw//;
 use File::Slurper qw//;
@@ -269,185 +270,175 @@ use Scalar::Util qw//;
 use Test::More 0.98;
 
 BEGIN {
-$SIG{__DIE__} = sub {
-    my ($s) = @_;
-    if(ref $s) {
-        $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;
-        die $s;
-    } else {
-        die Carp::longmess defined($s)? $s: "undef"
-    }
-};
-
-my $t = File::Slurper::read_text(__FILE__);
-my $s = '%(TEST_DIR)';
-
-File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;
-
-	File::Path::mkpath($s);
-
-	chdir $s or die "chdir $s: $!";
-
-	push @INC, '%(PROJECT_DIR)/lib', 'lib';
+	$SIG{__DIE__} = sub {
+		my ($msg) = @_;
+		if(ref $msg) {
+			$msg->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $msg;
+			die $msg;
+		} else {
+			die Carp::longmess defined($msg)? $msg: "undef"
+		}
+	};
 	
-	$ENV{PROJECT_DIR} = '%(PROJECT_DIR)';
-	$ENV{TEST_DIR} = $s;
-
-while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {
-    my ($file, $code) = ($1, $2);
-    $code =~ s/^#>> //mg;
-    File::Path::mkpath(File::Basename::dirname($file));
-    File::Slurper::write_text($file, $code);
-}
+	my $t = File::Slurper::read_text(__FILE__);
+	
+	my @dirs = File::Spec->splitdir(File::Basename::dirname(Cwd::abs_path(__FILE__)));
+	my $project_dir = File::Spec->catfile(@dirs[0..$#dirs-%(T_DIRS)]);
+	my $project_name = $dirs[$#dirs-%(T_DIRS)];
+	my @test_dirs = @dirs[$#dirs-%(T_DIRS)+2 .. $#dirs];
+	local $ENV{TMPDIR};
+	my $dir_for_tests = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs, File::Basename::basename(__FILE__)));
+	
+	File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $dir_for_tests), File::Path::rmtree($dir_for_tests) if -e $dir_for_tests;
+	File::Path::mkpath($dir_for_tests);
+	
+	chdir $dir_for_tests or die "chdir $dir_for_tests: $!";
+	
+	push @INC, "$project_dir/lib", "lib";
+	
+	$ENV{PROJECT_DIR} = $project_dir;
+	$ENV{DIR_FOR_TESTS} = $dir_for_tests;
+	
+	while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {
+		my ($file, $code) = ($1, $2);
+		$code =~ s/^#>> //mg;
+		File::Path::mkpath(File::Basename::dirname($file));
+		File::Slurper::write_text($file, $code);
+	}
 }
 END
 
 # Трансформирует md-файл в тест и документацию
 sub transform {
-    my ($self, $md, $test) = @_;
-    local $_;
-    $test //= $self->test_path($md);
+	my ($self, $md, $test) = @_;
+	local $_;
+	$test //= $self->test_path($md);
 
-    print colored(" ^‥^", "bright_black"), " $md ", colored("-->", "bright_black"), " $test ", colored("...", "bright_white"), " ";
+	print colored(" ^‥^", "bright_black"), " $md ", colored("-->", "bright_black"), " $test ", colored("...", "bright_white"), " ";
 
-    my $markdown = read_text($md);
+	my $markdown = read_text($md);
 
-    my $from; my $to;
-    $markdown =~ s/^!(\w+):(\w+)[\t ]*\n/$from = $1; $to = $2; "\n"/e;
-    $self->load_po($md, $from, $to);
+	my $from; my $to;
+	$markdown =~ s/^!(\w+):(\w+)[\t ]*\n/$from = $1; $to = $2; "\n"/e;
+	$self->load_po($md, $from, $to);
 
-    my @pod; my @test; my $title = 'Start'; my $close_subtest; my $use_title = 1;
+	my @pod; my @test; my $title = 'Start'; my $close_subtest; my $use_title = 1;
 
-    my @text = split /^(```\w*[ \t]*(?:\n|\z))/mo, $markdown;
+	my @text = split /^(```\w*[ \t]*(?:\n|\z))/mo, $markdown;
 
-    for(my $i=0; $i<@text; $i+=4) {
-        $text[$i] =~ s!([ \t])<(\w+(?:::\w+)*)>!${1}[$2](https://metacpan.org/pod/$2)!g;
+	for(my $i=0; $i<@text; $i+=4) {
+		$text[$i] =~ s!([ \t])<(\w+(?:::\w+)*)>!${1}[$2](https://metacpan.org/pod/$2)!g;
 
-        # mark - текст, sec1 - ```perl, code - код, sec2 - ```
-        my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
+		# mark - текст, sec1 - ```perl, code - код, sec2 - ```
+		my ($mark, $sec1, $code, $sec2) = @text[$i..$i+4];
 
-        push @pod, $self->markdown2pod($from? $self->trans_paragraph($mark, $i): $mark);
-        push @test, $mark =~ s/^/# /rmg;
+		push @pod, $self->markdown2pod($from? $self->trans_paragraph($mark, $i): $mark);
+		push @test, $mark =~ s/^/# /rmg;
 
-        last unless defined $sec1;
-        $i--, $sec2 = $code, $code = "" if $code =~ /^```[ \t]*$/;
+		last unless defined $sec1;
+		$i--, $sec2 = $code, $code = "" if $code =~ /^```[ \t]*$/;
 
-        die "=== mark ===\n$mark\n=== sec1 ===\n$sec1\n=== code ===\n$code\n=== sec2 ===\n$sec2\n\nsec2 ne ```" if $sec2 ne "```\n";
+		die "=== mark ===\n$mark\n=== sec1 ===\n$sec1\n=== code ===\n$code\n=== sec2 ===\n$sec2\n\nsec2 ne ```" if $sec2 ne "```\n";
 
-        $title = trim($1) while $mark =~ /^#+[ \t]+(.*)/gm;
+		$title = trim($1) while $mark =~ /^#+[ \t]+(.*)/gm;
 
-        push @pod, "\n", ($code =~ s/^/\t/gmr), "\n";
+		push @pod, "\n", ($code =~ s/^/\t/gmr), "\n";
 
-        my ($infile, $is) = $mark =~ /^(?:File|Файл)[ \t]+(.*?)([\t ]+(?:is|является))?:[\t ]*\n\z/m;
-        if($infile) {
-            my $real_code = $code =~ s/^\\(```\w*[\t ]*$)/$1/mgro;
-            if($is) { # тестируем, что текст совпадает
-                push @test, "\n{ my \$s = '${\_q_esc($infile)}'; open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; ::is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
-            }
-            else { # записываем тект в файл
-                #push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '>:utf8', \$s or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($real_code)}'; close \$__f__ }\n";
-                push @test, "#\@> $infile\n", $real_code =~ s/^/#>> /rgm, "#\@< EOF\n";
-            }
-        } elsif($sec1 =~ /^```(?:perl)?[ \t]*$/) {
+		my ($infile, $is) = $mark =~ /^(?:File|Файл)[ \t]+(.*?)([\t ]+(?:is|является))?:[\t ]*\n\z/m;
+		if($infile) {
+			my $real_code = $code =~ s/^\\(```\w*[\t ]*$)/$1/mgro;
+			if($is) { # тестируем, что текст совпадает
+				push @test, "\n{ my \$s = '${\_q_esc($infile)}'; open my \$__f__, '<:utf8', \$s or die \"Read \$s: \$!\"; my \$n = join '', <\$__f__>; close \$__f__; ::is \$n, '${\_q_esc($real_code)}', \"File \$s\"; }\n";
+			}
+			else { # записываем тект в файл
+				#push @test, "\n{ my \$s = main::_mkpath_('${\_q_esc($infile)}'); open my \$__f__, '>:utf8', \$s or die \"Read \$s: \$!\"; print \$__f__ '${\_q_esc($real_code)}'; close \$__f__ }\n";
+				push @test, "#\@> $infile\n", $real_code =~ s/^/#>> /rgm, "#\@< EOF\n";
+			}
+		} elsif($sec1 =~ /^```(?:perl)?[ \t]*$/) {
 
-            if($use_title ne $title) {
-                push @test, "::done_testing; }; " if $close_subtest;
-                $close_subtest = 1;
-                push @test, "subtest '${\ _q_esc($title)}' => sub { ";
-                $use_title = $title;
-            }
+			if($use_title ne $title) {
+				push @test, "::done_testing; }; " if $close_subtest;
+				$close_subtest = 1;
+				push @test, "subtest '${\ _q_esc($title)}' => sub { ";
+				$use_title = $title;
+			}
 
-            my $test = $code =~ s{^ (?<code> .* ) \# [\ \t]* (
-            	  (?<is_deeply> --> | ⟶ )
-	             |(?<is>         -> | → )
-	             |(?<qqis>       => | ⇒ )
-	             |(?<qis>   	\\> | ↦ )
-	             |(?<like>       ~> | ↬ )
-	             |(?<unlike>     <~ | ↫ )
-	             |(?<qqbegins> \^=> | ⤇ )
-	             |(?<qqends>   \$=> | ➾ )
-	             |(?<qqinners> \*=> | ⥴ )
-	             |(?<begins>   \^-> | ↣ )
-	             |(?<ends>     \$-> | ⇥ )
-	             |(?<inners>   \*-> | ⥵ )
-	             |(?<error>    \@-> | ↯ )
-	             |(?<qqerror>  \@=> | ⤯ )
-             ) \s* (?<expected> .+? ) [\ \t]* \n
-            }{ _to_testing($&, %+) }xgrme;
-            push @test, "\n", $test, "\n";
-        }
-        else {
-            push @test, "\n", $code =~ s/^/# /rmg, "\n";
-        }
-    }
+			my $test = $code =~ s{^ (?<code> .* ) \# [\ \t]* (
+				  (?<is_deeply> --> | ⟶ )
+				 |(?<is>		 -> | → )
+				 |(?<qqis>	   => | ⇒ )
+				 |(?<qis>   	\\> | ↦ )
+				 |(?<like>	   ~> | ↬ )
+				 |(?<unlike>	 <~ | ↫ )
+				 |(?<qqbegins> \^=> | ⤇ )
+				 |(?<qqends>   \$=> | ➾ )
+				 |(?<qqinners> \*=> | ⥴ )
+				 |(?<begins>   \^-> | ↣ )
+				 |(?<ends>	 \$-> | ⇥ )
+				 |(?<inners>   \*-> | ⥵ )
+				 |(?<error>	\@-> | ↯ )
+				 |(?<qqerror>  \@=> | ⤯ )
+			 ) \s* (?<expected> .+? ) [\ \t]* \n
+			}{ _to_testing($&, %+) }xgrme;
+			push @test, "\n", $test, "\n";
+		}
+		else {
+			push @test, "\n", $code =~ s/^/# /rmg, "\n";
+		}
+	}
 
-    push @test, "\n\t::done_testing;\n\};\n" if $close_subtest;
-    push @test, "\n::done_testing;\n";
+	push @test, "\n\t::done_testing;\n\};\n" if $close_subtest;
+	push @test, "\n::done_testing;\n";
 
-	my $root = getcwd();
-    my @pwd_dirs = File::Spec->splitdir($root);
-    my $project_name = $pwd_dirs[$#pwd_dirs];
-
-    my @test_dirs = File::Spec->splitdir($test);
-
-    my $test_dir = File::Spec->catfile(@test_dirs[0..$#test_dirs-1]);
-
-    mkpath($test_dir);
-    shift @test_dirs; # Удаляем t/
-    $test_dirs[$#test_dirs] =~ s!\.t$!!; # Удаляем .t
-
-    local $ENV{TMPDIR}; # yath устанавливает свою TMPDIR, нам этого не надо
-    my $test_path = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs));
-
-    my $test_head = $TEST_HEAD;
-
-    $test_head =~ y!\r\n!  !;
+	my $test_head = $TEST_HEAD =~ y!\r\n!  !r;
 	
+	my $test_dir = File::Basename::dirname($test);
+	mkpath $test_dir;
+	my @test_dirs = File::Spec->splitdir($test_dir);
 	my %inter = (
-		TEST_DIR => _q_esc($test_path),
-		PROJECT_DIR => _q_esc($root),
+		T_DIRS => scalar @test_dirs,
 	);
 	$test_head =~ s/%\((\w+)\)/$inter{$1}/ge;
 
-    write_text $test, join "", $test_head, @test;
+	write_text $test, join "", $test_head, @test;
 
-    # Создаём модуль, если его нет
-    my $pm = $md =~ s/\.md$/.pm/r;
-    if(!-e $pm) {
-        my $pkg = Liveman::Cpanfile::pkg_from_path $pm;
-        write_text $pm, "package $pkg;\n\n1;";
-    }
+	# Создаём модуль, если его нет
+	my $pm = $md =~ s/\.md$/.pm/r;
+	if(!-e $pm) {
+		my $pkg = Liveman::Cpanfile::pkg_from_path $pm;
+		write_text $pm, "package $pkg;\n\n1;";
+	}
 
-    # Трансформируем модуль (pod и версия):
-    my $pod = join "", @pod;
-    my $module = read_text $pm;
-    $module =~ s!(\s*\n__END__[\t ]*\n.*)?$!\n\n__END__\n\n=encoding utf-8\n\n$pod!sn;
+	# Трансформируем модуль (pod и версия):
+	my $pod = join "", @pod;
+	my $module = read_text $pm;
+	$module =~ s!(\s*\n__END__[\t ]*\n.*)?$!\n\n__END__\n\n=encoding utf-8\n\n$pod!sn;
 
-    # Меняем версию:
-    my $v = uc "version";
-    my ($version) = $markdown =~ /^#[ \t]+$v\s+([\w\.-]{1,32})\s/m;
-    $module =~ s!^(our\s*\$$v\s*=\s*)["']?[\w.-]{1,32}["']?!$1"$version"!m if defined $version;
-    write_text $pm, $module;
+	# Меняем версию:
+	my $v = uc "version";
+	my ($version) = $markdown =~ /^#[ \t]+$v\s+([\w\.-]{1,32})\s/m;
+	$module =~ s!^(our\s*\$$v\s*=\s*)["']?[\w.-]{1,32}["']?!$1"$version"!m if defined $version;
+	write_text $pm, $module;
 
-    $self->{count}++;
+	$self->{count}++;
 
-    $self->save_po;
+	$self->save_po;
 
-    my $mark = join "", @text;
-    $mark =~ s/^/!$from:$to/ if $from;
-    write_text($md, $mark) if $mark ne $markdown;
+	my $mark = join "", @text;
+	$mark =~ s/^/!$from:$to/ if $from;
+	write_text($md, $mark) if $mark ne $markdown;
 
-    print colored("ok", "bright_green"), "\n";
+	print colored("ok", "bright_green"), "\n";
 
-    $self
+	$self
 }
 
 # Запустить тесты
 sub tests {
-    my ($self) = @_;
+	my ($self) = @_;
 
-    my $cover = "/usr/bin/site_perl/cover";
-    $cover = 'cover' if !-e $cover;
+	my $cover = "/usr/bin/site_perl/cover";
+	$cover = 'cover' if !-e $cover;
 
 	my $yath; my $prove;
 	my $use_prove = $self->{prove};
@@ -459,18 +450,18 @@ sub tests {
 		$yath = 'yath' if !-e $yath;
 	}
 
-    my $options = $self->{options};
+	my $options = $self->{options};
 
-    if($self->{files}) {
-        my @tests = map $self->test_path($_), @{$self->{files}};
-        local $, = " ";
-        $self->{exit_code} = system $use_prove
-            ? "$prove -Ilib $options @tests"
-            : "$yath test -j4 $options @tests";
-        return $self;
-    }
+	if($self->{files}) {
+		my @tests = map $self->test_path($_), @{$self->{files}};
+		local $, = " ";
+		$self->{exit_code} = system $use_prove
+			? "$prove -Ilib $options @tests"
+			: "$yath test -j4 $options @tests";
+		return $self;
+	}
 
-    my $perl5opt = $ENV{PERL5OPT};
+	my $perl5opt = $ENV{PERL5OPT};
 	{
 		local $ENV{PERL5OPT};
 		system "$cover -delete";
@@ -486,13 +477,13 @@ sub tests {
 		system "(opera cover_db/coverage.html || xdg-open cover_db/coverage.html) &> /dev/null" if $self->{open};
 	}
 
-    require Liveman::CoverBadge;
-    eval {
-        Liveman::CoverBadge->new->load->save;
-    };
-    warn $@ if $@;
+	require Liveman::CoverBadge;
+	eval {
+		Liveman::CoverBadge->new->load->save;
+	};
+	warn $@ if $@;
 
-    return $self;
+	return $self;
 }
 
 1;

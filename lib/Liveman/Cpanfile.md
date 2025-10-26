@@ -25,6 +25,7 @@ on 'develop' => sub {
 on 'test' => sub {
 	requires 'Car::Auto';
 	requires 'Carp';
+	requires 'Cwd';
 	requires 'File::Basename';
 	requires 'File::Find';
 	requires 'File::Path';
@@ -162,7 +163,7 @@ use Car::Auto;
 3. Внедрённых в `*.md` пакетов.
 
 ```perl
-[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util Test::More Turbin open!]
+[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp Cwd File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util Test::More Turbin open!]
 ```
 
 ## cpanfile ()
