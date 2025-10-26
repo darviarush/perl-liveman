@@ -14,11 +14,8 @@ jobs:
         uses: shogo82148/actions-setup-perl@v1
         with:
           perl-version: ${{ matrix.perl }}
-      - name: Cache CPAN modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.cpanm
-          key: perl-${{ steps.perl.outputs.perl-hash }}-${{ hashFiles('cpanfile') }}
+      - name: Create cache directories
+        run: mkdir -p ~/.cpanm
       - name: Install Dependencies
         run: cpanm -nq --installdeps --with-recommends .
       - name: Run test
