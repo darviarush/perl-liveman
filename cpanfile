@@ -11,6 +11,7 @@ on 'test' => sub {
     requires 'Test::More', '0.98';
 
     requires 'Carp';
+    requires 'Cwd';
     requires 'common::sense';
     requires 'File::Basename';
     requires 'File::Find';
@@ -28,7 +29,6 @@ requires 'App::Prove';
 requires 'common::sense', '3.75';
 requires 'Data::UUID', '1.226';
 requires 'Carp';
-requires 'Cwd::utf8', '0.011';
 requires 'File::Basename';
 requires 'File::Find';
 requires 'File::Find::Wanted', '1.00';

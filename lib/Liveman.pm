@@ -4,7 +4,6 @@ use common::sense;
 
 our $VERSION = "3.2";
 
-use Cwd::utf8 qw/getcwd/;
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
 use File::Spec qw//;
