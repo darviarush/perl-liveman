@@ -1,11 +1,11 @@
-[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions) [![MetaCPAN Release](https://badge.fury.io/pl/Liveman.svg)](https://metacpan.org/release/Liveman) [![Coverage](https://raw.githubusercontent.com/darviarush/perl-liveman/master/doc/badges/total.svg)](https://fast2-matrix.cpantesters.org/?dist=Liveman+3.2)
+[![Actions Status](https://github.com/darviarush/perl-liveman/actions/workflows/test.yml/badge.svg)](https://github.com/darviarush/perl-liveman/actions) [![MetaCPAN Release](https://badge.fury.io/pl/Liveman.svg)](https://metacpan.org/release/Liveman) [![Coverage](https://raw.githubusercontent.com/darviarush/perl-liveman/master/doc/badges/total.svg)](https://fast2-matrix.cpantesters.org/?dist=Liveman+3.3)
 # NAME
 
 Liveman - компиллятор из markdown в тесты и документацию
 
 # VERSION
 
-3.2
+3.3
 
 # SYNOPSIS
 
@@ -114,7 +114,7 @@ my $exclamation = "!";
 
 ### `like`
 
-Сравнить скаляр с регулярным выражением:
+Скаляр должен быть сопостовим с регулярным выражением:
 
 ```perl
 'abbc' # ~> b+
@@ -210,6 +210,23 @@ my $by = 'by';
 1/0 # ⤯ Illegal division $by zero
 ```
 
+### `like` throw
+
+Исключение должно быть сопостовимо с регулярным выражением:
+
+```perl
+1/0 # @~> division\s*by\s*zero
+1/0 # ⇝ division\s*by\s*zero
+```
+
+### `unlike` throw
+
+Исключение не должно быть сопостовимо с регулярным выражением:
+
+```perl
+1/0 # <~@ auto
+1/0 # ⇜ auto
+```
 
 ## EMBEDDING FILES
 

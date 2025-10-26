@@ -2,9 +2,12 @@ requires 'perl', '5.22.0';
 
 on 'develop' => sub {
 	requires 'App::cpm';
+	requires 'CPAN::Uploader';
 	requires 'Data::Printer', '1.000004';
 	requires 'Minilla', 'v3.1.19';
+	requires 'Software::License::GPL_3';
 	requires 'V';
+	requires 'Version::Next';
 };
 
 on 'test' => sub {

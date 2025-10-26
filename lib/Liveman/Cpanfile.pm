@@ -132,10 +132,13 @@ requires 'perl', '5.22.0';
 
 on 'develop' => sub {
 	requires 'App::cpm';
+	requires 'CPAN::Uploader';
 	requires 'Data::Printer', '1.000004';
 	requires 'Minilla', 'v3.1.19';
 	requires 'Liveman', '1.0';
+	requires 'Software::License::GPL_3';
 	requires 'V';
+	requires 'Version::Next';
 };
 
 on 'test' => sub {\n$t_requires};
@@ -152,7 +155,7 @@ __END__
 
 =head1 NAME
 
-Liveman::Cpanfile - анализатор зависимостей Perl проекта
+Liveman::Cpanfile - Perl project dependency analyzer
 
 =head1 SYNOPSIS
 
@@ -167,10 +170,13 @@ Liveman::Cpanfile - анализатор зависимостей Perl прое�
 	
 	on 'develop' => sub {
 		requires 'App::cpm';
+		requires 'CPAN::Uploader';
 		requires 'Data::Printer', '1.000004';
 		requires 'Minilla', 'v3.1.19';
 		requires 'Liveman', '1.0';
+		requires 'Software::License::GPL_3';
 		requires 'V';
+		requires 'Version::Next';
 	};
 	
 	on 'test' => sub {
@@ -197,31 +203,31 @@ Liveman::Cpanfile - анализатор зависимостей Perl прое�
 
 =head1 DESCRIPTION
 
-C<Liveman::Cpanfile> анализирует структуру Perl проекта и извлекает информацию о зависимостях из исходного кода, тестов и документации. Модуль автоматически определяет используемые модули и помогает поддерживать актуальный C<cpanfile>.
+C<Liveman::Cpanfile> parses the structure of a Perl project and extracts dependency information from source code, tests, and documentation. The module automatically detects which modules are used and helps keep the C<cpanfile> up to date.
 
 =head1 SUBROUTINES
 
 =head2 new ()
 
-Конструктор.
+Constructor.
 
 =head2 pkg_from_path ()
 
-Преобразует путь к файлу в имя пакета Perl.
+Converts a file path to a Perl package name.
 
 	Liveman::Cpanfile::pkg_from_path('lib/My/Module.pm') # => My::Module
 	Liveman::Cpanfile::pkg_from_path('lib/My/App.pm')    # => My::App
 
 =head2 sc ()
 
-Возвращает список исполняемых скриптов в директориях C<scripts/> и C<bin/>.
+Returns a list of executable scripts in the C<scripts/> and C<bin/> directories.
 
-Файл scripts/test_script:
+Scripts/test_script file:
 
 	#!/usr/bin/env perl
 	require Data::Printer;
 
-Файл bin/tool:
+bin/tool file:
 
 	#!/usr/bin/env perl
 	use List::Util;
@@ -232,16 +238,16 @@ C<Liveman::Cpanfile> анализирует структуру Perl проект
 
 =head2 pm ()
 
-Возвращает список Perl модулей в директории C<lib/>.
+Returns a list of Perl modules in the C<lib/> directory.
 
-Файл lib/My/Module.pm:
+File lib/My/Module.pm:
 
 	package My::Module;
 	use strict;
 	use warnings;
 	1;
 
-Файл lib/My/Other.pm:
+File lib/My/Other.pm:
 
 	package My::Other;
 	use common::sense;
@@ -253,15 +259,15 @@ C<Liveman::Cpanfile> анализирует структуру Perl проект
 
 =head2 mod ()
 
-Возвращает список имен пакетов проекта соответствующих модулям в директории C<lib/>.
+Returns a list of project package names corresponding to the modules in the C<lib/> directory.
 
 	[$::cpanfile->mod]  # --> [qw/My::Module My::Other/]
 
 =head2 md ()
 
-Возвращает список Markdown файлов документации (C<*.md>) в C<lib/>.
+Returns a list of Markdown documentation files (C<*.md>) in C<lib/>.
 
-Файл lib/My/Module.md:
+File lib/My/Module.md:
 
 	# My::Module
 	
@@ -281,27 +287,27 @@ C<Liveman::Cpanfile> анализирует структуру Perl проект
 
 =head2 md_mod ()
 
-Список внедрённых в C<*.md> пакетов.
+List of packages embedded in C<*.md>.
 
 	[$::cpanfile->md_mod]  # --> [qw!My My::Third!]
 
 =head2 deps ()
 
-Список зависимостей явно указанных в скриптах и модулях без пакетов проекта.
+List of dependencies explicitly specified in scripts and modules without project packages.
 
 	[$::cpanfile->deps]  # --> [qw!Data::Printer List::Util common::sense strict warnings!]
 
 =head2 t_deps ()
 
-Список зависимостей из тестов за исключением:
+List of dependencies from tests except:
 
 =over
 
-=item 1. Зависмостей скриптов и модулей.
+=item 1. Dependencies of scripts and modules.
 
-=item 2. Пакетов проекта.
+=item 2. Project packages.
 
-=item 3. Внедрённых в C<*.md> пакетов.
+=item 3. Packages embedded in C<*.md>.
 
 =back
 
@@ -309,7 +315,7 @@ C<Liveman::Cpanfile> анализирует структуру Perl проект
 
 =head2 cpanfile ()
 
-Возвращает текст cpanfile c зависимостями для проекта.
+Returns the text cpanfile with dependencies for the project.
 
 =head1 AUTHOR
 

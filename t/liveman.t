@@ -1,11 +1,11 @@
-use common::sense; use open qw/:std :utf8/;  use Carp qw//; use Cwd qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN { 	$SIG{__DIE__} = sub { 		my ($msg) = @_; 		if(ref $msg) { 			$msg->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $msg; 			die $msg; 		} else { 			die Carp::longmess defined($msg)? $msg: "undef" 		} 	}; 	 	my $t = File::Slurper::read_text(__FILE__); 	 	my @dirs = File::Spec->splitdir(File::Basename::dirname(Cwd::abs_path(__FILE__))); 	my $project_dir = File::Spec->catfile(@dirs[0..$#dirs-1]); 	my $project_name = $dirs[$#dirs-1]; 	my @test_dirs = @dirs[$#dirs-1+2 .. $#dirs]; 	local $ENV{TMPDIR}; 	my $dir_for_tests = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs, File::Basename::basename(__FILE__))); 	 	File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $dir_for_tests), File::Path::rmtree($dir_for_tests) if -e $dir_for_tests; 	File::Path::mkpath($dir_for_tests); 	 	chdir $dir_for_tests or die "chdir $dir_for_tests: $!"; 	 	push @INC, "$project_dir/lib", "lib"; 	 	$ENV{PROJECT_DIR} = $project_dir; 	$ENV{DIR_FOR_TESTS} = $dir_for_tests; 	 	while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { 		my ($file, $code) = ($1, $2); 		$code =~ s/^#>> //mg; 		File::Path::mkpath(File::Basename::dirname($file)); 		File::Slurper::write_text($file, $code); 	} } # !ru:en,badges
+use common::sense; use open qw/:std :utf8/;  use Carp qw//; use Cwd qw//; use File::Basename qw//; use File::Find qw//; use File::Slurper qw//; use File::Spec qw//; use File::Path qw//; use Scalar::Util qw//;  use Test::More 0.98;  BEGIN { 	$SIG{__DIE__} = sub { 		my ($msg) = @_; 		if(ref $msg) { 			$msg->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $msg; 			die $msg; 		} else { 			die Carp::longmess defined($msg)? $msg: "undef" 		} 	}; 	 	my $t = File::Slurper::read_text(__FILE__); 	 	my @dirs = File::Spec->splitdir(File::Basename::dirname(Cwd::abs_path(__FILE__))); 	my $project_dir = File::Spec->catfile(@dirs[0..$#dirs-1]); 	my $project_name = $dirs[$#dirs-1]; 	my @test_dirs = @dirs[$#dirs-1+2 .. $#dirs]; 	my $dir_for_tests = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs, File::Basename::basename(__FILE__))); 	 	File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $dir_for_tests), File::Path::rmtree($dir_for_tests) if -e $dir_for_tests; 	File::Path::mkpath($dir_for_tests); 	 	chdir $dir_for_tests or die "chdir $dir_for_tests: $!"; 	 	push @INC, "$project_dir/lib", "lib"; 	 	$ENV{PROJECT_DIR} = $project_dir; 	$ENV{DIR_FOR_TESTS} = $dir_for_tests; 	 	while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) { 		my ($file, $code) = ($1, $2); 		$code =~ s/^#>> //mg; 		File::Path::mkpath(File::Basename::dirname($file)); 		File::Slurper::write_text($file, $code); 	} } # !ru:en,badges
 # # NAME
 # 
 # Liveman - компиллятор из markdown в тесты и документацию
 # 
 # # VERSION
 # 
-# 3.2
+# 3.3
 # 
 # # SYNOPSIS
 # 
@@ -114,7 +114,7 @@ my $exclamation = "!";
 # 
 # ### `like`
 # 
-# Сравнить скаляр с регулярным выражением:
+# Скаляр должен быть сопостовим с регулярным выражением:
 # 
 ::done_testing; }; subtest '`like`' => sub { 
 ::like scalar do {'abbc'}, qr{b+}, '\'abbc\' # ~> b+';
@@ -210,6 +210,23 @@ my $by = 'by';
 ::cmp_ok do { eval {1/0}; $@ }, '=~', '^' . quotemeta "Illegal division $by zero", '1/0 # ⤯ Illegal division $by zero';
 
 # 
+# ### `like` throw
+# 
+# Исключение должно быть сопостовимо с регулярным выражением:
+# 
+::done_testing; }; subtest '`like` throw' => sub { 
+::like scalar do { eval { 1/0 }; $@ }, qr{division\s*by\s*zero}, '1/0 # @~> division\s*by\s*zero';
+::like scalar do { eval { 1/0 }; $@ }, qr{division\s*by\s*zero}, '1/0 # ⇝ division\s*by\s*zero';
+
+# 
+# ### `unlike` throw
+# 
+# Исключение не должно быть сопостовимо с регулярным выражением:
+# 
+::done_testing; }; subtest '`unlike` throw' => sub { 
+::unlike scalar do { eval { 1/0 }; $@ }, qr{auto}, '1/0 # <~@ auto';
+::unlike scalar do { eval { 1/0 }; $@ }, qr{auto}, '1/0 # ⇜ auto';
+
 # 
 # ## EMBEDDING FILES
 # 

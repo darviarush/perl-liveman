@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "3.2";
+our $VERSION = "3.3";
 
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
@@ -123,6 +123,8 @@ sub _to_testing {
 	elsif(exists $x{inners})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta '$ex', '$q';\n" }
 	elsif(exists $x{error})  { my $ex = _q_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta '$ex', '$q';\n" }
 	elsif(exists $x{qqerror})  { my $ex = _qq_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
+	elsif(exists $x{qrerror})  { my $ex = _qr_esc($expected); "::like scalar do { eval { $code }; \$\@ }, qr{$ex}, '$q';\n" }
+	elsif(exists $x{unqrerror})  { my $ex = _qr_esc($expected); "::unlike scalar do { eval { $code }; \$\@ }, qr{$ex}, '$q';\n" }
 	else { # Что-то ужасное вырвалось на волю!
 		"???"
 	}
@@ -285,7 +287,6 @@ BEGIN {
 	my $project_dir = File::Spec->catfile(@dirs[0..$#dirs-%(T_DIRS)]);
 	my $project_name = $dirs[$#dirs-%(T_DIRS)];
 	my @test_dirs = @dirs[$#dirs-%(T_DIRS)+2 .. $#dirs];
-	local $ENV{TMPDIR};
 	my $dir_for_tests = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs, File::Basename::basename(__FILE__)));
 	
 	File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $dir_for_tests), File::Path::rmtree($dir_for_tests) if -e $dir_for_tests;
@@ -363,21 +364,23 @@ sub transform {
 			}
 
 			my $test = $code =~ s{^ (?<code> .* ) \# [\ \t]* (
-				  (?<is_deeply> --> | ⟶ )
-				 |(?<is>		 -> | → )
-				 |(?<qqis>	   => | ⇒ )
-				 |(?<qis>   	\\> | ↦ )
-				 |(?<like>	   ~> | ↬ )
-				 |(?<unlike>	 <~ | ↫ )
-				 |(?<qqbegins> \^=> | ⤇ )
-				 |(?<qqends>   \$=> | ➾ )
-				 |(?<qqinners> \*=> | ⥴ )
-				 |(?<begins>   \^-> | ↣ )
-				 |(?<ends>	 \$-> | ⇥ )
-				 |(?<inners>   \*-> | ⥵ )
-				 |(?<error>	\@-> | ↯ )
-				 |(?<qqerror>  \@=> | ⤯ )
-			 ) \s* (?<expected> .+? ) [\ \t]* \n
+				 (?<is_deeply>  --> | ⟶ )
+				|(?<is>	         -> | → )
+				|(?<qqis>        => | ⇒ )
+				|(?<qis>   	    \\> | ↦ )
+				|(?<qqbegins>  \^=> | ⤇ )
+				|(?<qqends>    \$=> | ➾ )
+				|(?<qqinners>  \*=> | ⥴ )
+				|(?<begins>    \^-> | ↣ )
+				|(?<ends>      \$-> | ⇥ )
+				|(?<inners>    \*-> | ⥵ )
+				|(?<error>	   \@-> | ↯ )
+				|(?<qqerror>   \@=> | ⤯ )
+				|(?<qrerror>   \@~> | ⇝ )
+				|(?<unqrerror> <~\@ | ⇜ )
+				|(?<like>        ~> | ↬ )
+				|(?<unlike>      <~ | ↫ )
+			 ) [\ \t]* (?<expected> .+? ) [\ \t]* \n
 			}{ _to_testing($&, %+) }xgrme;
 			push @test, "\n", $test, "\n";
 		}
@@ -498,7 +501,7 @@ Liveman - компиллятор из markdown в тесты и документ
 
 =head1 VERSION
 
-3.2
+3.3
 
 =head1 SYNOPSIS
 
@@ -597,7 +600,7 @@ B<Примечание:> C<trans -R> покажет список языков, �
 
 =head3 C<like>
 
-Сравнить скаляр с регулярным выражением:
+Скаляр должен быть сопостовим с регулярным выражением:
 
 	'abbc' # ~> b+
 	'abc'  # ↬ b+
@@ -672,6 +675,20 @@ B<Примечание:> C<trans -R> покажет список языков, �
 	
 	1/0 # @=> Illegal division $by zero
 	1/0 # ⤯ Illegal division $by zero
+
+=head3 C<like> throw
+
+Исключение должно быть сопостовимо с регулярным выражением:
+
+	1/0 # @~> division\s*by\s*zero
+	1/0 # ⇝ division\s*by\s*zero
+
+=head3 C<unlike> throw
+
+Исключение не должно быть сопостовимо с регулярным выражением:
+
+	1/0 # <~@ auto
+	1/0 # ⇜ auto
 
 =head2 EMBEDDING FILES
 
