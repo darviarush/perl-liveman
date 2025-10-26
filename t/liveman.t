@@ -79,7 +79,7 @@ my $prove_return_code = $liveman->tests->{exit_code};
 # 
 # Сравнить два эквивалентных выражения:
 # 
-done_testing; }; subtest '`is`' => sub { 
+::done_testing; }; subtest '`is`' => sub { 
 ::is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # -> "hi" . "!"';
 ::is scalar do {"hi!"}, scalar do{"hi" . "!"}, '"hi!" # → "hi" . "!"';
 
@@ -88,7 +88,7 @@ done_testing; }; subtest '`is`' => sub {
 # 
 # Сравнить два выражения для структур:
 # 
-done_testing; }; subtest '`is_deeply`' => sub { 
+::done_testing; }; subtest '`is_deeply`' => sub { 
 ::is_deeply scalar do {["hi!"]}, scalar do {["hi" . "!"]}, '["hi!"] # --> ["hi" . "!"]';
 ::is_deeply scalar do {"hi!"}, scalar do {"hi" . "!"}, '"hi!" # ⟶ "hi" . "!"';
 
@@ -97,7 +97,7 @@ done_testing; }; subtest '`is_deeply`' => sub {
 # 
 # Сравнить выражение с экстраполированной строкой:
 # 
-done_testing; }; subtest '`is` with extrapolate-string' => sub { 
+::done_testing; }; subtest '`is` with extrapolate-string' => sub { 
 my $exclamation = "!";
 ::is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # => hi${exclamation}2';
 ::is scalar do {"hi!2"}, "hi${exclamation}2", '"hi!2" # ⇒ hi${exclamation}2';
@@ -107,28 +107,109 @@ my $exclamation = "!";
 # 
 # Сравнить выражение с неэкстраполированной строкой:
 # 
-done_testing; }; subtest '`is` with nonextrapolate-string' => sub { 
+::done_testing; }; subtest '`is` with nonextrapolate-string' => sub { 
 ::is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # \> hi${exclamation}3';
 ::is scalar do {'hi${exclamation}3'}, 'hi${exclamation}3', '\'hi${exclamation}3\' # ↦ hi${exclamation}3';
 
 # 
 # ### `like`
 # 
-# Проверяет регулярное выражение, включенное в выражение:
+# Сравнить скаляр с регулярным выражением:
 # 
-done_testing; }; subtest '`like`' => sub { 
-::like scalar do {'abbc'}, qr!b+!, '\'abbc\' # ~> b+';
-::like scalar do {'abc'}, qr!b+!, '\'abc\'  # ↬ b+';
+::done_testing; }; subtest '`like`' => sub { 
+::like scalar do {'abbc'}, qr{b+}, '\'abbc\' # ~> b+';
+::like scalar do {'abc'}, qr{b+}, '\'abc\'  # ↬ b+';
 
 # 
 # ### `unlike`
 # 
-# Он проверяет регулярное выражение, исключённое из выражения:
+# В скаляре не должно быть совпадения с регулярным выражением:
 # 
-done_testing; }; subtest '`unlike`' => sub { 
-::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # <~ b+';
-::unlike scalar do {'ac'}, qr!b+!, '\'ac\' # ↫ b+';
+::done_testing; }; subtest '`unlike`' => sub { 
+::unlike scalar do {'ac'}, qr{b+}, '\'ac\' # <~ b+';
+::unlike scalar do {'ac'}, qr{b+}, '\'ac\' # ↫ b+';
 
+# 
+# ### `like` begins with extrapolate-string
+# 
+# Скаляр должен начинаться экстраполированой срокой:
+# 
+::done_testing; }; subtest '`like` begins with extrapolate-string' => sub { 
+my $var = 'b';
+
+::cmp_ok scalar do {'abbc'}, '=~', '^' . quotemeta "a$var", '\'abbc\' # ^=> a$var';
+::cmp_ok scalar do {'abc'}, '=~', '^' . quotemeta "a$var", '\'abc\'  # ⤇ a$var';
+
+# 
+# ### `like` ends with extrapolate-string
+# 
+# Скаляр должен заканчиваться экстраполированой срокой:
+# 
+::done_testing; }; subtest '`like` ends with extrapolate-string' => sub { 
+my $var = 'c';
+
+::cmp_ok scalar do {'abbc'}, '=~', quotemeta("b$var") . '$', '\'abbc\' # $=> b$var';
+::cmp_ok scalar do {'abc'}, '=~', quotemeta("b$var") . '$', '\'abc\'  # ➾ b$var';
+
+# 
+# ### `like` inners with extrapolate-string
+# 
+# Скаляр должен содержать экстраполированую сроку:
+# 
+::done_testing; }; subtest '`like` inners with extrapolate-string' => sub { 
+my $var = 'x';
+
+::cmp_ok scalar do {'abxc'}, '=~', quotemeta "b$var", '\'abxc\'  # *=> b$var';
+::cmp_ok scalar do {'abxs'}, '=~', quotemeta "b$var", '\'abxs\'  # ⥴ b$var';
+
+# 
+# ### `like` begins with nonextrapolate-string
+# 
+# Скаляр должен начинаться неэкстраполированой срокой:
+# 
+::done_testing; }; subtest '`like` begins with nonextrapolate-string' => sub { 
+::cmp_ok scalar do {'abbc'}, '=~', '^' . quotemeta 'ab', '\'abbc\' # ^-> ab';
+::cmp_ok scalar do {'abc'}, '=~', '^' . quotemeta 'ab', '\'abc\'  # ↣ ab';
+
+# 
+# ### `like` ends with nonextrapolate-string
+# 
+# Скаляр должен заканчиваться неэкстраполированой срокой:
+# 
+::done_testing; }; subtest '`like` ends with nonextrapolate-string' => sub { 
+::cmp_ok scalar do {'abbc'}, '=~', quotemeta('bc') . '$', '\'abbc\' # $-> bc';
+::cmp_ok scalar do {'abc'}, '=~', quotemeta('bc') . '$', '\'abc\'  # ⇥ bc';
+
+# 
+# ### `like` inners with nonextrapolate-string
+# 
+# Скаляр должен содержать неэкстраполированую сроку:
+# 
+::done_testing; }; subtest '`like` inners with nonextrapolate-string' => sub { 
+::cmp_ok scalar do {'abbc'}, '=~', quotemeta 'bb', '\'abbc\' # *-> bb';
+::cmp_ok scalar do {'abc'}, '=~', quotemeta 'b', '\'abc\'  # ⥵ b';
+
+# 
+# ### `like` throw begins with nonextrapolate-string
+# 
+# Исключение должно начинаться с неэкстраполированой сроки:
+# 
+::done_testing; }; subtest '`like` throw begins with nonextrapolate-string' => sub { 
+::cmp_ok do { eval {1/0}; $@ }, '=~', '^' . quotemeta 'Illegal division by zero', '1/0 # @-> Illegal division by zero';
+::cmp_ok do { eval {1/0}; $@ }, '=~', '^' . quotemeta 'Illegal division by zero', '1/0 # ↯ Illegal division by zero';
+
+# 
+# ### `like` throw begins with extrapolate-string
+# 
+# Исключение должно начинаться с экстраполированой сроки:
+# 
+::done_testing; }; subtest '`like` throw begins with extrapolate-string' => sub { 
+my $by = 'by';
+
+::cmp_ok do { eval {1/0}; $@ }, '=~', '^' . quotemeta "Illegal division $by zero", '1/0 # @=> Illegal division $by zero';
+::cmp_ok do { eval {1/0}; $@ }, '=~', '^' . quotemeta "Illegal division $by zero", '1/0 # ⤯ Illegal division $by zero';
+
+# 
 # 
 # ## EMBEDDING FILES
 # 
@@ -170,7 +251,7 @@ done_testing; }; subtest '`unlike`' => sub {
 # 
 # Получить путь к `t/**.t`-файлу из пути к `lib/**.md`-файлу:
 # 
-done_testing; }; subtest 'test_path ($md_path)' => sub { 
+::done_testing; }; subtest 'test_path ($md_path)' => sub { 
 ::is scalar do {Liveman->new->test_path("lib/PathFix/RestFix.md")}, "t/path-fix/rest-fix.t", 'Liveman->new->test_path("lib/PathFix/RestFix.md") # => t/path-fix/rest-fix.t';
 
 # 
@@ -265,7 +346,7 @@ Twice two:
 # 
 # The Liveman module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
-	done_testing;
+	::done_testing;
 };
 
-done_testing;
+::done_testing;

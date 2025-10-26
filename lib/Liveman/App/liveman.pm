@@ -22,6 +22,8 @@ my $parse_options_ok = GetOptions(
     'f|force!'    => \( my $compile_force = 0 ),
     'a|append!'   => \( my $append = 0 ),
     'A|new!'      => \( my $project = 0 ),
+    'D|cpanfile!' => \( my $cpanfile = 0 ),
+    'd|diff_cpanfile:s' => \( my $diff_cpanfile ),
 );
 
 if ( !$parse_options_ok ) {
@@ -46,12 +48,30 @@ elsif ($man) {
 } elsif($project) {
     require Liveman::Project;
     Liveman::Project->new(pkg => $ARGV[0], license => $ARGV[1])->make;
-    exit 0;
 }
 elsif($append) {
     require Liveman::Append;
     my $liveman = Liveman::Append->new(files => \@ARGV)->appends;
     exit $liveman->{count} > 0? 0: 1;
+}
+elsif($cpanfile) {
+    require Liveman::Cpanfile;
+    print Liveman::Cpanfile->new->cpanfile;
+}
+elsif(defined $diff_cpanfile) {
+	require File::Spec;
+	require File::Slurper;
+	require Liveman::Cpanfile;
+    my $cpanfile = Liveman::Cpanfile->new->cpanfile;
+
+    my $cpanfile_path = File::Spec->catfile(File::Spec->tmpdir, 'cpanfile');
+    File::Slurper::write_text($cpanfile_path, $cpanfile);
+    
+    $diff_cpanfile ||= 'meld';
+
+    my $res = system $diff_cpanfile, $cpanfile_path, 'cpanfile';
+    print "$diff_cpanfile failed\n" if $res;
+    exit $res;
 }
 else {
     my $liveman = Liveman->new(
@@ -155,6 +175,14 @@ Create a new repository.
 =item * I<License> is a license name, for example, GPLv3 or perl_5.
 
 =back
+
+B<-D>, B<--cpanfile>
+
+Print a sample cpanfile.
+
+B<-d>, B<--diff-cpanfile> [meld]
+
+Compare the sample cpanfile with the existing one. If the parameter is not specified, C<meld> is used. Alternatively, you can use C<diff>, C<colordiff>, C<wdiff>, C<kompare>, C<kdiff3>, C<tkdiff>, C<diffuse> or any other utility that takes two files as arguments.
 
 =head1 INSTALL
 

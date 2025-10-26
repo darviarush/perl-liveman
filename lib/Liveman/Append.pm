@@ -353,7 +353,7 @@ File lib/Alt/The/Plan.md is:
 	
 	# AUTHOR
 	
-	Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+	Yaroslav O. Kosmina <dart@cpan.org>
 	
 	# LICENSE
 	

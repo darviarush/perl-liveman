@@ -67,6 +67,12 @@ msgid "* *PACKAGE* — это имя нового пакета, например
 msgstr "* *PACKAGE* - this is the name of the new package, for example, `Aion::View`.\n"
 "* *License* is a license name, for example, GPLv3 or perl_5."
 
+msgid "Распечатать примерный cpanfile."
+msgstr "Print a sample cpanfile."
+
+msgid "Сравнить примерный cpanfile с существующим. Если параметр не указан – используется `meld`. В качестве альтернативы можно использовать `diff`, `colordiff`, `wdiff`, `kompare`, `kdiff3`, `tkdiff`, `diffuse` или любую другую утилиту, которая принимает два файла в качестве аргументов."
+msgstr "Compare the sample cpanfile with the existing one. If the parameter is not specified, `meld` is used. Alternatively, you can use `diff`, `colordiff`, `wdiff`, `kompare`, `kdiff3`, `tkdiff`, `diffuse` or any other utility that takes two files as arguments."
+
 msgid "Чтобы установить этот модуль в вашу систему, выполните следующую [команду](https://metacpan.org/pod/App::cpm):"
 msgstr "To install this module in your system, follow the following [command](https://metacpan.org/pod/App::cpm)"
 

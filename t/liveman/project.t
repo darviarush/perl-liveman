@@ -59,7 +59,7 @@ my $liveman_project = Liveman::Project->new;
 # 
 # The Liveman::Project module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
-	done_testing;
+	::done_testing;
 };
 
-done_testing;
+::done_testing;

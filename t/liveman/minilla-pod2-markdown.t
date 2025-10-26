@@ -91,7 +91,7 @@ $mark->parse_from_file("X.pm");
 # 
 # The Liveman::MinillaPod2Markdown module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
-	done_testing;
+	::done_testing;
 };
 
-done_testing;
+::done_testing;

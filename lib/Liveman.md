@@ -114,7 +114,7 @@ my $exclamation = "!";
 
 ### `like`
 
-Проверяет регулярное выражение, включенное в выражение:
+Сравнить скаляр с регулярным выражением:
 
 ```perl
 'abbc' # ~> b+
@@ -123,12 +123,93 @@ my $exclamation = "!";
 
 ### `unlike`
 
-Он проверяет регулярное выражение, исключённое из выражения:
+В скаляре не должно быть совпадения с регулярным выражением:
 
 ```perl
 'ac' # <~ b+
 'ac' # ↫ b+
 ```
+
+### `like` begins with extrapolate-string
+
+Скаляр должен начинаться экстраполированой срокой:
+
+```perl
+my $var = 'b';
+
+'abbc' # ^=> a$var
+'abc'  # ⤇ a$var
+```
+
+### `like` ends with extrapolate-string
+
+Скаляр должен заканчиваться экстраполированой срокой:
+
+```perl
+my $var = 'c';
+
+'abbc' # $=> b$var
+'abc'  # ➾ b$var
+```
+
+### `like` inners with extrapolate-string
+
+Скаляр должен содержать экстраполированую сроку:
+
+```perl
+my $var = 'x';
+
+'abxc'  # *=> b$var
+'abxs'  # ⥴ b$var
+```
+
+### `like` begins with nonextrapolate-string
+
+Скаляр должен начинаться неэкстраполированой срокой:
+
+```perl
+'abbc' # ^-> ab
+'abc'  # ↣ ab
+```
+
+### `like` ends with nonextrapolate-string
+
+Скаляр должен заканчиваться неэкстраполированой срокой:
+
+```perl
+'abbc' # $-> bc
+'abc'  # ⇥ bc
+```
+
+### `like` inners with nonextrapolate-string
+
+Скаляр должен содержать неэкстраполированую сроку:
+
+```perl
+'abbc' # *-> bb
+'abc'  # ⥵ b
+```
+
+### `like` throw begins with nonextrapolate-string
+
+Исключение должно начинаться с неэкстраполированой сроки:
+
+```perl
+1/0 # @-> Illegal division by zero
+1/0 # ↯ Illegal division by zero
+```
+
+### `like` throw begins with extrapolate-string
+
+Исключение должно начинаться с экстраполированой сроки:
+
+```perl
+my $by = 'by';
+
+1/0 # @=> Illegal division $by zero
+1/0 # ⤯ Illegal division $by zero
+```
+
 
 ## EMBEDDING FILES
 

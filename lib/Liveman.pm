@@ -82,14 +82,6 @@ sub transforms {
         }
     }
 
-#     # cpanfile
-#     if (!$self->{files}) {
-#         eval {
-#             $self->cpanfile($mds);
-#         };
-#         warn colored("cpanfile", 'red') . ": $@" if $@;
-#     }
-
     $self
 }
 
@@ -121,9 +113,17 @@ sub _to_testing {
     if(exists $x{is_deeply}) { "::is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
     elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
     elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
-    elsif(exists $x{qis})  { my $ex = _q_esc($expected);  "::is scalar do {$code}, '$ex', '$q';\n" }
-    elsif(exists $x{like})  { my $ex = _qr_esc($expected);  "::like scalar do {$code}, qr{$ex}, '$q';\n" }
-    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected);  "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
+    elsif(exists $x{qis})  { my $ex = _q_esc($expected); "::is scalar do {$code}, '$ex', '$q';\n" }
+    elsif(exists $x{like})  { my $ex = _qr_esc($expected); "::like scalar do {$code}, qr{$ex}, '$q';\n" }
+    elsif(exists $x{unlike})  { my $ex = _qr_esc($expected); "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
+    elsif(exists $x{qqbegins})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
+    elsif(exists $x{qqends})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta(\"$ex\") . '\$', '$q';\n" }
+    elsif(exists $x{qqinners})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta \"$ex\", '$q';\n" }
+    elsif(exists $x{begins})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta '$ex', '$q';\n" }
+    elsif(exists $x{ends})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta('$ex') . '\$', '$q';\n" }
+    elsif(exists $x{inners})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta '$ex', '$q';\n" }
+    elsif(exists $x{error})  { my $ex = _q_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta '$ex', '$q';\n" }
+    elsif(exists $x{qqerror})  { my $ex = _qq_esc($expected); "::cmp_ok do { eval {$code}; \$\@ }, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
     else { # Что-то ужасное вырвалось на волю!
         "???"
     }
@@ -254,6 +254,54 @@ sub markdown2pod {
 	$_
 }
 
+our $TEST_HEAD = << 'END';
+use common::sense;
+use open qw/:std :utf8/;
+
+use Carp qw//;
+use File::Basename qw//;
+use File::Find qw//;
+use File::Slurper qw//;
+use File::Spec qw//;
+use File::Path qw//;
+use Scalar::Util qw//;
+
+use Test::More 0.98;
+
+BEGIN {
+$SIG{__DIE__} = sub {
+    my ($s) = @_;
+    if(ref $s) {
+        $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;
+        die $s;
+    } else {
+        die Carp::longmess defined($s)? $s: "undef"
+    }
+};
+
+my $t = File::Slurper::read_text(__FILE__);
+my $s = '%(TEST_DIR)';
+
+File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;
+
+	File::Path::mkpath($s);
+
+	chdir $s or die "chdir $s: $!";
+
+	push @INC, '%(PROJECT_DIR)/lib', 'lib';
+	
+	$ENV{PROJECT_DIR} = '%(PROJECT_DIR)';
+	$ENV{TEST_DIR} = $s;
+
+while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {
+    my ($file, $code) = ($1, $2);
+    $code =~ s/^#>> //mg;
+    File::Path::mkpath(File::Basename::dirname($file));
+    File::Slurper::write_text($file, $code);
+}
+}
+END
+
 # Трансформирует md-файл в тест и документацию
 sub transform {
     my ($self, $md, $test) = @_;
@@ -310,12 +358,20 @@ sub transform {
             }
 
             my $test = $code =~ s{^ (?<code> .* ) \# [\ \t]* (
-            	(?<is_deeply> --> | ⟶ )
-	            |(?<is>        -> | → )
-	            |(?<qqis>      => | ⇒ )
-	            |(?<qis>       \\> | ↦)
-	            |(?<like>      ~> | ↬ )
-	            |(?<unlike>    <~ | ↫ )
+            	  (?<is_deeply> --> | ⟶ )
+	             |(?<is>         -> | → )
+	             |(?<qqis>       => | ⇒ )
+	             |(?<qis>   	\\> | ↦ )
+	             |(?<like>       ~> | ↬ )
+	             |(?<unlike>     <~ | ↫ )
+	             |(?<qqbegins> \^=> | ⤇ )
+	             |(?<qqends>   \$=> | ➾ )
+	             |(?<qqinners> \*=> | ⥴ )
+	             |(?<begins>   \^-> | ↣ )
+	             |(?<ends>     \$-> | ⇥ )
+	             |(?<inners>   \*-> | ⥵ )
+	             |(?<error>    \@-> | ↯ )
+	             |(?<qqerror>  \@=> | ⤯ )
              ) \s* (?<expected> .+? ) [\ \t]* \n
             }{ _to_testing($&, %+) }xgrme;
             push @test, "\n", $test, "\n";
@@ -343,53 +399,7 @@ sub transform {
     local $ENV{TMPDIR}; # yath устанавливает свою TMPDIR, нам этого не надо
     my $test_path = File::Spec->catfile(File::Spec->tmpdir, ".liveman", $project_name, join("!", @test_dirs));
 
-    my $test_head = << 'END';
-use common::sense;
-use open qw/:std :utf8/;
-
-use Carp qw//;
-use File::Basename qw//;
-use File::Find qw//;
-use File::Slurper qw//;
-use File::Spec qw//;
-use File::Path qw//;
-use Scalar::Util qw//;
-
-use Test::More 0.98;
-
-BEGIN {
-    $SIG{__DIE__} = sub {
-        my ($s) = @_;
-        if(ref $s) {
-            $s->{STACKTRACE} = Carp::longmess "?" if "HASH" eq Scalar::Util::reftype $s;
-            die $s;
-        } else {
-            die Carp::longmess defined($s)? $s: "undef"
-        }
-    };
-
-    my $t = File::Slurper::read_text(__FILE__);
-    my $s = '%(TEST_DIR)';
-
-    File::Find::find(sub { chmod 0700, $_ if !/^\.{1,2}\z/ }, $s), File::Path::rmtree($s) if -e $s;
-
-	File::Path::mkpath($s);
-
-	chdir $s or die "chdir $s: $!";
-
-	push @INC, '%(PROJECT_DIR)/lib', 'lib';
-	
-	$ENV{PROJECT_DIR} = '%(PROJECT_DIR)';
-	$ENV{TEST_DIR} = $s;
-
-    while($t =~ /^#\@> (.*)\n((#>> .*\n)*)#\@< EOF\n/gm) {
-        my ($file, $code) = ($1, $2);
-        $code =~ s/^#>> //mg;
-        File::Path::mkpath(File::Basename::dirname($file));
-        File::Slurper::write_text($file, $code);
-    }
-}
-END
+    my $test_head = $TEST_HEAD;
 
     $test_head =~ y!\r\n!  !;
 	
@@ -597,17 +607,81 @@ B<Примечание:> C<trans -R> покажет список языков, �
 
 =head3 C<like>
 
-Проверяет регулярное выражение, включенное в выражение:
+Сравнить скаляр с регулярным выражением:
 
 	'abbc' # ~> b+
 	'abc'  # ↬ b+
 
 =head3 C<unlike>
 
-Он проверяет регулярное выражение, исключённое из выражения:
+В скаляре не должно быть совпадения с регулярным выражением:
 
 	'ac' # <~ b+
 	'ac' # ↫ b+
+
+=head3 C<like> begins with extrapolate-string
+
+Скаляр должен начинаться экстраполированой срокой:
+
+	my $var = 'b';
+	
+	'abbc' # ^=> a$var
+	'abc'  # ⤇ a$var
+
+=head3 C<like> ends with extrapolate-string
+
+Скаляр должен заканчиваться экстраполированой срокой:
+
+	my $var = 'c';
+	
+	'abbc' # $=> b$var
+	'abc'  # ➾ b$var
+
+=head3 C<like> inners with extrapolate-string
+
+Скаляр должен содержать экстраполированую сроку:
+
+	my $var = 'x';
+	
+	'abxc'  # *=> b$var
+	'abxs'  # ⥴ b$var
+
+=head3 C<like> begins with nonextrapolate-string
+
+Скаляр должен начинаться неэкстраполированой срокой:
+
+	'abbc' # ^-> ab
+	'abc'  # ↣ ab
+
+=head3 C<like> ends with nonextrapolate-string
+
+Скаляр должен заканчиваться неэкстраполированой срокой:
+
+	'abbc' # $-> bc
+	'abc'  # ⇥ bc
+
+=head3 C<like> inners with nonextrapolate-string
+
+Скаляр должен содержать неэкстраполированую сроку:
+
+	'abbc' # *-> bb
+	'abc'  # ⥵ b
+
+=head3 C<like> throw begins with nonextrapolate-string
+
+Исключение должно начинаться с неэкстраполированой сроки:
+
+	1/0 # @-> Illegal division by zero
+	1/0 # ↯ Illegal division by zero
+
+=head3 C<like> throw begins with extrapolate-string
+
+Исключение должно начинаться с экстраполированой сроки:
+
+	my $by = 'by';
+	
+	1/0 # @=> Illegal division $by zero
+	1/0 # ⤯ Illegal division $by zero
 
 =head2 EMBEDDING FILES
 

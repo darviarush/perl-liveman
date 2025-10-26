@@ -1,113 +1,177 @@
 # NAME
 
-Liveman::Cpanfile - получение зависимостей
+Liveman::Cpanfile - анализатор зависимостей Perl проекта
 
 # SYNOPSIS
 
 ```perl
 use Liveman::Cpanfile;
 
-my $liveman_cpanfile = Liveman::Cpanfile->new;
+chmod 0755, $_ for qw!scripts/test_script bin/tool!;
+
+$::cpanfile = Liveman::Cpanfile->new;
+
+$::cpanfile->cpanfile # -> << 'END'
+requires 'perl', '5.22.0';
+
+on 'develop' => sub {
+	requires 'App::cpm';
+	requires 'Data::Printer', '1.000004';
+	requires 'Minilla', 'v3.1.19';
+	requires 'Liveman', '1.0';
+	requires 'V';
+};
+
+on 'test' => sub {
+	requires 'Car::Auto';
+	requires 'Carp';
+	requires 'File::Basename';
+	requires 'File::Find';
+	requires 'File::Path';
+	requires 'File::Slurper';
+	requires 'File::Spec';
+	requires 'Scalar::Util';
+	requires 'Test::More';
+	requires 'Turbin';
+	requires 'open';
+};
+
+requires 'Data::Printer';
+requires 'List::Util';
+requires 'common::sense';
+requires 'strict';
+requires 'warnings';
+END
 ```
 
 # DESCRIPTION
 
-Liveman::Cpanfile предназначен для получения всех используемых модулей в проекте для получения зависимостей которые затем будут добавлены в cpanfile. Он отбрасывает модули проекта и тестов, оставляя только зависимости.
+`Liveman::Cpanfile` анализирует структуру Perl проекта и извлекает информацию о зависимостях из исходного кода, тестов и документации. Модуль автоматически определяет используемые модули и помогает поддерживать актуальный `cpanfile`.
 
 # SUBROUTINES
 
 ## new ()
 
-Конструктор
-
-```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->new  # -> .3
-```
+Конструктор.
 
 ## pkg_from_path ()
 
-Пакет из пути
+Преобразует путь к файлу в имя пакета Perl.
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->pkg_from_path  # -> .3
+Liveman::Cpanfile::pkg_from_path('lib/My/Module.pm') # => My::Module
+Liveman::Cpanfile::pkg_from_path('lib/My/App.pm')    # => My::App
 ```
 
 ## sc ()
 
-Список файлов scripts/* и bin/*
+Возвращает список исполняемых скриптов в директориях `scripts/` и `bin/`.
+
+Файл scripts/test_script:
+```perl
+#!/usr/bin/env perl
+require Data::Printer;
+```
+
+Файл bin/tool:
+```perl
+#!/usr/bin/env perl
+use List::Util;
+```
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->sc  # -> .3
+[$::cpanfile->sc] # --> [qw!bin/tool scripts/test_script!]
 ```
 
 ## pm ()
 
-Список файлов lib/*.pm
+Возвращает список Perl модулей в директории `lib/`.
+
+Файл lib/My/Module.pm:
+```perl
+package My::Module;
+use strict;
+use warnings;
+1;
+```
+
+Файл lib/My/Other.pm:
+```perl
+package My::Other;
+use common::sense;
+1;
+```
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->pm  # -> .3
+[$::cpanfile->pm]  # --> [qw!lib/My/Module.pm lib/My/Other.pm!]
 ```
 
 ## mod ()
 
-Список модулей проекта
+Возвращает список имен пакетов проекта соответствующих модулям в директории `lib/`.
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->mod  # -> .3
+[$::cpanfile->mod]  # --> [qw/My::Module My::Other/]
 ```
 
 ## md ()
 
-Список *.md файлов
+Возвращает список Markdown файлов документации (`*.md`) в `lib/`.
+
+Файл lib/My/Module.md:
+```md
+# My::Module
+
+This is a module for experiment with package My::Module.
+\```perl
+package My {}
+package My::Third {}
+use My::Other;
+use My;
+use Turbin;
+use Car::Auto;
+\```
+```
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->md  # -> .3
+[$::cpanfile->md]  # --> [qw!lib/My/Module.md!]
 ```
 
 ## md_mod ()
 
-Список внедрённых в *.md модулей
+Список внедрённых в `*.md` пакетов.
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->md_mod  # -> .3
+[$::cpanfile->md_mod]  # --> [qw!My My::Third!]
 ```
 
 ## deps ()
 
-Список модулей-зависимостей явно указанных в скриптах и модулях (- mod)
+Список зависимостей явно указанных в скриптах и модулях без пакетов проекта.
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->deps  # -> .3
+[$::cpanfile->deps]  # --> [qw!Data::Printer List::Util common::sense strict warnings!]
 ```
 
 ## t_deps ()
 
-Список модулей-зависимостей из тестов (- deps - mod - md_mod)
+Список зависимостей из тестов за исключением:
+
+1. Зависмостей скриптов и модулей.
+2. Пакетов проекта.
+3. Внедрённых в `*.md` пакетов.
 
 ```perl
-my $liveman_cpanfile = Liveman::Cpanfile->new;
-$liveman_cpanfile->t_deps  # -> .3
+[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util Test::More Turbin open!]
 ```
 
-# INSTALL
+## cpanfile ()
 
-For install this module in your system run next [command](https://metacpan.org/pod/App::cpm):
-
-```sh
-sudo cpm install -gvv Liveman::Cpanfile
-```
+Возвращает текст cpanfile c зависимостями для проекта.
 
 # AUTHOR
 
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+Yaroslav O. Kosmina <dart@cpan.org>
 
 # LICENSE
 

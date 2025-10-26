@@ -58,7 +58,7 @@ my $liveman_append = Liveman::Append->new;
 #>> 1;
 #@< EOF
 # 
-done_testing; }; subtest 'append ($path)' => sub { 
+::done_testing; }; subtest 'append ($path)' => sub { 
 ::is scalar do {-e "lib/Alt/The/Plan.md"}, scalar do{undef}, '-e "lib/Alt/The/Plan.md" # -> undef';
 
 # Set the mocks:
@@ -128,7 +128,7 @@ sudo cpm install -gvv Alt::The::Plan
 
 # AUTHOR
 
-Yaroslav O. Kosmina [dart@cpan.org](mailto:dart@cpan.org)
+Yaroslav O. Kosmina <dart@cpan.org>
 
 # LICENSE
 
@@ -151,7 +151,7 @@ The Alt::The::Plan module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All
 # 
 # The Liveman::Append module is copyright © 2023 Yaroslav O. Kosmina. Rusland. All rights reserved.
 
-	done_testing;
+	::done_testing;
 };
 
-done_testing;
+::done_testing;
