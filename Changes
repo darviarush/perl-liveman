@@ -2,6 +2,11 @@ Revision history for Perl extension Liveman
 
 {{$NEXT}}
 
+3.6 2025-11-27T20:38:41Z
+
+    - output diff $got and $expected in tests without like-tests
+    - dir scripts replace to script in cpanfile depends
+
 3.5 2025-11-20T09:56:33Z
 
     - brifing test spec
