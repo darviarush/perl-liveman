@@ -10,7 +10,7 @@ use Liveman::Append;
 
 my $liveman_append = Liveman::Append->new;
 
-{ my $got = do {ref $liveman_append}; my $ex = "Liveman::Append"; ::ok $got eq $ex, 'ref $liveman_append     # => Liveman::Append' or ::diag ::_string_diff($got, $ex) }
+$::_g0 = do {ref $liveman_append}; $::_e0 = "Liveman::Append"; ::ok $::_g0 eq $::_e0, 'ref $liveman_append     # => Liveman::Append' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # # DESCRIPTION
@@ -59,7 +59,8 @@ my $liveman_append = Liveman::Append->new;
 #@< EOF
 # 
 ::done_testing; }; subtest 'append ($path)' => sub { 
-{ my $got = do {-e "lib/Alt/The/Plan.md"}; my $ex = do {undef}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '-e "lib/Alt/The/Plan.md" # -> undef' or ::diag ::_struct_diff($got, $ex) }
+$::_g0 = do {-e "lib/Alt/The/Plan.md"}; $::_e0 = do {undef}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '-e "lib/Alt/The/Plan.md" # -> undef' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+
 # Set the mocks:
 *Liveman::Append::_git_user_name = sub {'Yaroslav O. Kosmina'};
 *Liveman::Append::_git_user_email = sub {'dart@cpan.org'};
@@ -68,11 +69,16 @@ my $liveman_append = Liveman::Append->new;
 *Liveman::Append::_land = sub {"Rusland"};
 
 my $liveman_append = Liveman::Append->new->append("lib/Alt/The/Plan.pm");
-{ my $got = do {$liveman_append->{count}}; my $ex = do {1}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '$liveman_append->{count}	# -> 1' or ::diag ::_struct_diff($got, $ex) }{ my $got = do {$liveman_append->{added}}; my $ex = do {2}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '$liveman_append->{added}	# -> 2' or ::diag ::_struct_diff($got, $ex) }
-{ my $got = do {-e "lib/Alt/The/Plan.md"}; my $ex = do {1}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '-e "lib/Alt/The/Plan.md" # -> 1' or ::diag ::_struct_diff($got, $ex) }
+$::_g0 = do {$liveman_append->{count}}; $::_e0 = do {1}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$liveman_append->{count}	# -> 1' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+$::_g0 = do {$liveman_append->{added}}; $::_e0 = do {2}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$liveman_append->{added}	# -> 2' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+
+$::_g0 = do {-e "lib/Alt/The/Plan.md"}; $::_e0 = do {1}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '-e "lib/Alt/The/Plan.md" # -> 1' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+
 # And again:
 $liveman_append = Liveman::Append->new->append("lib/Alt/The/Plan.pm");
-{ my $got = do {$liveman_append->{count}}; my $ex = do {1}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '$liveman_append->{count}	# -> 1' or ::diag ::_struct_diff($got, $ex) }{ my $got = do {$liveman_append->{added}}; my $ex = do {0}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '$liveman_append->{added}	# -> 0' or ::diag ::_struct_diff($got, $ex) }
+$::_g0 = do {$liveman_append->{count}}; $::_e0 = do {1}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$liveman_append->{count}	# -> 1' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+$::_g0 = do {$liveman_append->{added}}; $::_e0 = do {0}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$liveman_append->{added}	# -> 0' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+
 # 
 # File lib/Alt/The/Plan.md is:
 

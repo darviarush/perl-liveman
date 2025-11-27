@@ -8,7 +8,10 @@ Liveman::Cpanfile - анализатор зависимостей Perl прое�
 ```perl
 use Liveman::Cpanfile;
 
-my $result = << 'END';
+chmod 0755, $_ for qw!script/test_script bin/tool!;
+
+$::cpanfile = Liveman::Cpanfile->new;
+$::cpanfile->cpanfile # -> << 'END'
 requires 'perl', '5.22.0';
 
 on 'develop' => sub {
@@ -46,11 +49,6 @@ requires 'common::sense';
 requires 'strict';
 requires 'warnings';
 END
-
-chmod 0755, $_ for qw!script/test_script bin/tool!;
-
-$::cpanfile = Liveman::Cpanfile->new;
-$::cpanfile->cpanfile # -> $result
 ```
 
 # DESCRIPTION

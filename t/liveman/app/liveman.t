@@ -36,7 +36,7 @@ use common::sense; use open qw/:std :utf8/;  use Carp qw//; use Cwd qw//; use Fi
 # Показать версию и выйти.
 # 
 subtest 'OPTIONS' => sub { 
-::like scalar do {`perl $ENV{PROJECT_DIR}/script/liveman -v`}, qr{^\d+\.\d+$}, '`perl $ENV{PROJECT_DIR}/script/liveman -v` # ~> ^\d+\.\d+$';
+::like scalar do {`perl $ENV{PROJECT_DIR}/script/liveman -v`}, qr{^\d+\.\d+$}, '`perl $ENV{PROJECT_DIR}/script/liveman -v` # ~> ^\d+\.\d+$'; undef $::_g0; undef $::_e0;
 
 # 
 # **--man**

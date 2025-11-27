@@ -10,16 +10,17 @@ use Liveman::MinillaPod2Markdown;
 
 my $mark = Liveman::MinillaPod2Markdown->new;
 
-{ my $got = do {$mark->isa("Pod::Markdown")}; my $ex = do {1}; ::ok defined($got) == defined($ex) && ref $got eq ref $ex && $got eq $ex, '$mark->isa("Pod::Markdown")  # -> 1' or ::diag ::_struct_diff($got, $ex) }
+$::_g0 = do {$mark->isa("Pod::Markdown")}; $::_e0 = do {1}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$mark->isa("Pod::Markdown")  # -> 1' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+
 use File::Slurper qw/write_text/;
 write_text "X.md", "hi!";
 write_text "X.pm", "our \$VERSION = 1.0;";
 
 $mark->parse_from_file("X.pm");
-{ my $got = do {$mark->{pm_path}}; my $ex = "X.pm"; ::ok $got eq $ex, '$mark->{pm_path}  # => X.pm' or ::diag ::_string_diff($got, $ex) }
-{ my $got = do {$mark->{md_path}}; my $ex = "X.md"; ::ok $got eq $ex, '$mark->{md_path}  # => X.md' or ::diag ::_string_diff($got, $ex) }
+$::_g0 = do {$mark->{pm_path}}; $::_e0 = "X.pm"; ::ok $::_g0 eq $::_e0, '$mark->{pm_path}  # => X.pm' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+$::_g0 = do {$mark->{md_path}}; $::_e0 = "X.md"; ::ok $::_g0 eq $::_e0, '$mark->{md_path}  # => X.md' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
-{ my $got = do {$mark->as_markdown}; my $ex = "hi!"; ::ok $got eq $ex, '$mark->as_markdown  # => hi!' or ::diag ::_string_diff($got, $ex) }
+$::_g0 = do {$mark->as_markdown}; $::_e0 = "hi!"; ::ok $::_g0 eq $::_e0, '$mark->as_markdown  # => hi!' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # # DESCRIPION
