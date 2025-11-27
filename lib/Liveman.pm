@@ -85,17 +85,17 @@ sub transforms {
 }
 
 # Эскейпинг для qr!!
-sub _qr_esc {
+sub _qr_esc($) {
 	$_[0] =~ s/!/\\!/gr
 }
 
 # Эскейпинг для строки в двойных кавычках
-sub _qq_esc {
+sub _qq_esc($) {
 	$_[0] =~ s!"!\\"!gr
 }
 
 # Эскейпинг для строки в одинарных кавычках
-sub _q_esc {
+sub _q_esc($) {
 	$_[0] =~ s!'!\\'!gr
 }
 
@@ -109,22 +109,22 @@ sub _to_testing {
 	my $q = _q_esc($line =~ s!\s*$!!r);
 	my $code = trim($x{code});
 
-	if(exists $x{is_deeply}) { "::is_deeply scalar do {$code}, scalar do {$expected}, '$q';\n" }
-	elsif(exists $x{is})   { "::is scalar do {$code}, scalar do{$expected}, '$q';\n" }
-	elsif(exists $x{qqis}) { my $ex = _qq_esc($expected); "::is scalar do {$code}, \"$ex\", '$q';\n" }
-	elsif(exists $x{qis})  { my $ex = _q_esc($expected); "::is scalar do {$code}, '$ex', '$q';\n" }
-	elsif(exists $x{like})  { my $ex = _qr_esc($expected); "::like scalar do {$code}, qr{$ex}, '$q';\n" }
-	elsif(exists $x{unlike})  { my $ex = _qr_esc($expected); "::unlike scalar do {$code}, qr{$ex}, '$q';\n" }
-	elsif(exists $x{qqbegins})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
-	elsif(exists $x{qqends})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta(\"$ex\") . '\$', '$q';\n" }
-	elsif(exists $x{qqinners})  { my $ex = _qq_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta \"$ex\", '$q';\n" }
-	elsif(exists $x{begins})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', '^' . quotemeta '$ex', '$q';\n" }
-	elsif(exists $x{ends})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta('$ex') . '\$', '$q';\n" }
-	elsif(exists $x{inners})  { my $ex = _q_esc($expected); "::cmp_ok scalar do {$code}, '=~', quotemeta '$ex', '$q';\n" }
-	elsif(exists $x{error})  { my $ex = _q_esc($expected); "eval {$code}; ok defined(\$\@), '$q'; ::cmp_ok \$\@, '=~', '^' . quotemeta '$ex', '$q';\n" }
-	elsif(exists $x{qqerror})  { my $ex = _qq_esc($expected); "eval {$code}; ok defined(\$\@), '$q'; ::cmp_ok \$\@, '=~', '^' . quotemeta \"$ex\", '$q';\n" }
-	elsif(exists $x{qrerror})  { my $ex = _qr_esc($expected); "eval {$code}; ok defined(\$\@), '$q'; ::like scalar \$\@, qr{$ex}, '$q';\n" }
-	elsif(exists $x{unqrerror})  { my $ex = _qr_esc($expected); "eval {$code}; ok defined(\$\@), '$q'; ::unlike scalar \$\@, qr{$ex}, '$q';\n" }
+	if(exists $x{is_deeply}) { "{ my \$got = do {$code}; my \$ex = do {$expected}; ::is_deeply \$got, \$ex, '$q' or ::diag ::_struct_diff(\$got, \$ex) }\n" }
+	elsif(exists $x{is}) { "{ my \$got = do {$code}; my \$ex = do {$expected}; ::ok defined(\$got) == defined(\$ex) && ref \$got eq ref \$ex && \$got eq \$ex, '$q' or ::diag ::_struct_diff(\$got, \$ex) }" }
+	elsif(exists $x{qqis}) { "{ my \$got = do {$code}; my \$ex = \"${\_qq_esc $expected}\"; ::ok \$got eq \$ex, '$q' or ::diag ::_string_diff(\$got, \$ex) }\n" }
+	elsif(exists $x{qis}) {	"{ my \$got = do {$code}; my \$ex = '${\_q_esc $expected}'; ::ok \$got eq \$ex, '$q' or ::diag ::_string_diff(\$got, \$ex) }\n" }
+	elsif(exists $x{like}) { "::like scalar do {$code}, qr{${\_qr_esc $expected}}, '$q';\n" }
+	elsif(exists $x{unlike}) { "::unlike scalar do {$code}, qr{${\_qr_esc $expected}}, '$q';\n" }
+	elsif(exists $x{qqbegins}) { "{ my \$got = do {$code}; my \$ex = \"${\_qq_esc $expected}\"; ::ok \$got =~ /^\${\\quotemeta \$ex}/, '$q' or ::diag ::string_diff(\$got, \$ex, 1) }\n" }
+	elsif(exists $x{qqends}) { "{ my \$got = do {$code}; my \$ex = \"${\_qq_esc $expected}\"; ::ok \$got =~ /\${\\quotemeta \$ex}\$/, '$q' or ::diag ::string_diff(\$got, \$ex, 1) }\n" }
+	elsif(exists $x{qqinners}) { "{ my \$got = do {$code}; my \$ex = \"${\_qq_esc $expected}\"; ::ok \$got =~ quotemeta \$ex, '$q' or ::diag ::string_diff(\$got, \$ex, 0) }\n" }
+	elsif(exists $x{begins}) { "{ my \$got = do {$code}; my \$ex = '${\_q_esc $expected}'; ::ok \$got =~ /^\${\\quotemeta \$ex}/, '$q' or ::diag ::string_diff(\$got, \$ex, 1) }\n" }
+	elsif(exists $x{ends}) { "{ my \$got = do {$code}; my \$ex = '${\_q_esc $expected}'; ::ok \$got =~ /\${\\quotemeta \$ex}\$/, '$q' or ::diag ::string_diff(\$got, \$ex, -1) }\n" }
+	elsif(exists $x{inners}) { "{ my \$got = do {$code}; my \$ex = '${\_q_esc $expected}'; ::ok \$got =~ quotemeta \$ex, '$q' or ::diag ::string_diff(\$got, \$ex, 0) }\n" }
+	elsif(exists $x{error}) { "{ eval {$code}; my \$got = \$\@; my \$ex = '${\_q_esc $expected}'; ok defined(\$got) && \$got =~ /^\${\\quotemeta \$ex}/, '$q' or ::diag ::string_diff(\$got, \$ex, 1) };\n" }
+	elsif(exists $x{qqerror}) { "{ eval {$code}; my \$got = \$\@; my \$ex = \"${\_qq_esc $expected}\"; ok defined(\$got) && \$got =~ /^\${\\quotemeta \$ex}/, '$q' or ::diag ::string_diff(\$got, \$ex, 1) };\n" }
+	elsif(exists $x{qrerror}) { "{ eval {$code}; my \$got = \$\@; my \$ex = qr{${\_qr_esc $expected}}; ok defined(\$got) && \$got =~ \$ex, '$q' or ::diag defined(\$got)? \"Got: \$got\": 'Got is undef' };\n" }
+	elsif(exists $x{unqrerror}) { "{ eval {$code}; my \$got = \$\@; my \$ex = qr{${\_qr_esc $expected}}; ok defined(\$got) && \$got !~ \$ex, '$q' or ::diag defined(\$got)? \"Got: \$got\": 'Got is undef' };\n" }
 	else { # Что-то ужасное вырвалось на волю!
 		"???"
 	}
@@ -270,6 +270,10 @@ use Scalar::Util qw//;
 
 use Test::More 0.98;
 
+use String::Diff qw//;
+use Data::Dumper qw//;
+use Term::ANSIColor qw//;
+
 BEGIN {
 	$SIG{__DIE__} = sub {
 		my ($msg) = @_;
@@ -309,6 +313,34 @@ BEGIN {
 		File::Slurper::write_text($file, $code);
 	}
 }
+
+my $white = Term::ANSIColor::color('BRIGHT_WHITE');
+my $red = Term::ANSIColor::color('BRIGHT_RED');
+my $green = Term::ANSIColor::color('BRIGHT_GREEN');
+my $reset = Term::ANSIColor::color('RESET');
+my @diff = (
+	remove_open => "$white\[$red",
+	remove_close => "$white]$reset",
+	append_open => "$white\{$green",
+	append_close => "$white}$reset",
+);
+
+sub _string_diff {
+	my ($got, $expected, $chunk) = @_;
+	$got = substr($got, 0, length $expected) if $chunk == 1;
+	$got = substr($got, -length $expected) if $chunk == -1;
+	String::Diff::diff_merge($got, $expected, @diff)
+}
+
+sub _struct_diff {
+	my ($got, $expected) = @_;
+	String::Diff::diff_merge(
+		Data::Dumper->new([$got], ['diff'])->Indent(0)->Useqq(1)->Dump,
+		Data::Dumper->new([$expected], ['diff'])->Indent(0)->Useqq(1)->Dump,
+		@diff
+	)
+}
+
 END
 
 # Трансформирует md-файл в тест и документацию
