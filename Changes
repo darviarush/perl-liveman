@@ -2,6 +2,10 @@ Revision history for Perl extension Liveman
 
 {{$NEXT}}
 
+3.7 2025-11-28T08:15:57Z
+
+    - tests with local
+
 3.6 2025-11-27T20:38:41Z
 
     - output diff $got and $expected in tests without like-tests

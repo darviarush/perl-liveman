@@ -2,7 +2,7 @@ package Liveman;
 use 5.22.0;
 use common::sense;
 
-our $VERSION = "3.6";
+our $VERSION = "3.7";
 
 use File::Basename qw/dirname/;
 use File::Find::Wanted qw/find_wanted/;
@@ -108,24 +108,27 @@ sub _to_testing {
 	my $expected = $x{expected};
 	my $q = _q_esc($line =~ s!\s*$!!r);
 	my $code = trim($x{code});
+	# clear делается, чтобы освободить ресурсы
 	my $clear = 'undef $::_g0; undef $::_e0;';
+	
+	# local делается для того, чтобы в AnyEvent, Coro или Thread переменные не пересекались
 
-	if(exists $x{is_deeply}) { "\$::_g0 = do {$code}; \$::_e0 = do {$expected}; ::is_deeply \$::_g0, \$::_e0, '$q' or ::diag ::_struct_diff(\$::_g0, \$::_e0); $clear\n" }
-	elsif(exists $x{is}) { "\$::_g0 = do {$code}; \$::_e0 = do {$expected}; ::ok defined(\$::_g0) == defined(\$::_e0) && ref \$::_g0 eq ref \$::_e0 && \$::_g0 eq \$::_e0, '$q' or ::diag ::_struct_diff(\$::_g0, \$::_e0); $clear\n" }
-	elsif(exists $x{qqis}) { "\$::_g0 = do {$code}; \$::_e0 = \"${\_qq_esc $expected}\"; ::ok \$::_g0 eq \$::_e0, '$q' or ::diag ::_string_diff(\$::_g0, \$::_e0); $clear\n" }
-	elsif(exists $x{qis}) { "\$::_g0 = do {$code}; \$::_e0 = '${\_q_esc $expected}'; ::ok \$::_g0 eq \$::_e0, '$q' or ::diag ::_string_diff(\$::_g0, \$::_e0); $clear\n" }
+	if(exists $x{is_deeply}) { "local (\$::_g0 = do {$code}, \$::_e0 = do {$expected}); ::is_deeply \$::_g0, \$::_e0, '$q' or ::diag ::_struct_diff(\$::_g0, \$::_e0); $clear\n" }
+	elsif(exists $x{is}) { "local (\$::_g0 = do {$code}, \$::_e0 = do {$expected}); ::ok defined(\$::_g0) == defined(\$::_e0) && ref \$::_g0 eq ref \$::_e0 && \$::_g0 eq \$::_e0, '$q' or ::diag ::_struct_diff(\$::_g0, \$::_e0); $clear\n" }
+	elsif(exists $x{qqis}) { "local (\$::_g0 = do {$code}, \$::_e0 = \"${\_qq_esc $expected}\"); ::ok \$::_g0 eq \$::_e0, '$q' or ::diag ::_string_diff(\$::_g0, \$::_e0); $clear\n" }
+	elsif(exists $x{qis}) { "local (\$::_g0 = do {$code}, \$::_e0 = '${\_q_esc $expected}'); ::ok \$::_g0 eq \$::_e0, '$q' or ::diag ::_string_diff(\$::_g0, \$::_e0); $clear\n" }
 	elsif(exists $x{like}) { "::like scalar do {$code}, qr{${\_qr_esc $expected}}, '$q'; $clear\n" }
 	elsif(exists $x{unlike}) { "::unlike scalar do {$code}, qr{${\_qr_esc $expected}}, '$q'; $clear\n" }
-	elsif(exists $x{qqbegins}) { "\$::_g0 = do {$code}; \$::_e0 = \"${\_qq_esc $expected}\"; ::ok \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
-	elsif(exists $x{qqends}) { "\$::_g0 = do {$code}; \$::_e0 = \"${\_qq_esc $expected}\"; ::ok \$::_g0 =~ /\${\\quotemeta \$::_e0}\$/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
-	elsif(exists $x{qqinners}) { "\$::_g0 = do {$code}; \$::_e0 = \"${\_qq_esc $expected}\"; ::ok \$::_g0 =~ quotemeta \$::_e0, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 0); $clear\n" }
-	elsif(exists $x{begins}) { "\$::_g0 = do {$code}; \$::_e0 = '${\_q_esc $expected}'; ::ok \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
-	elsif(exists $x{ends}) { "\$::_g0 = do {$code}; \$::_e0 = '${\_q_esc $expected}'; ::ok \$::_g0 =~ /\${\\quotemeta \$::_e0}\$/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, -1); $clear\n" }
-	elsif(exists $x{inners}) { "\$::_g0 = do {$code}; \$::_e0 = '${\_q_esc $expected}'; ::ok \$::_g0 =~ quotemeta \$::_e0, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 0); $clear\n" }
-	elsif(exists $x{error}) { "eval {$code}; \$::_g0 = \$\@; \$::_e0 = '${\_q_esc $expected}'; ok defined(\$::_g0) && \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
-	elsif(exists $x{qqerror}) { "eval {$code}; \$::_g0 = \$\@; \$::_e0 = \"${\_qq_esc $expected}\"; ok defined(\$::_g0) && \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
-	elsif(exists $x{qrerror}) { "eval {$code}; \$::_g0 = \$\@; \$::_e0 = qr{${\_qr_esc $expected}}; ok defined(\$::_g0) && \$::_g0 =~ \$::_e0, '$q' or ::diag defined(\$::_g0)? \"Got:\$::_g0\": 'Got is undef'; $clear\n" }
-	elsif(exists $x{unqrerror}) { "eval {$code}; \$::_g0 = \$\@; \$::_e0 = qr{${\_qr_esc $expected}}; ok defined(\$::_g0) && \$::_g0 !~ \$::_e0, '$q' or ::diag defined(\$::_g0)? \"Got:\$::_g0\": 'Got is undef'; $clear\n" }
+	elsif(exists $x{qqbegins}) { "local (\$::_g0 = do {$code}, \$::_e0 = \"${\_qq_esc $expected}\"); ::ok \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
+	elsif(exists $x{qqends}) { "local (\$::_g0 = do {$code}, \$::_e0 = \"${\_qq_esc $expected}\"); ::ok \$::_g0 =~ /\${\\quotemeta \$::_e0}\$/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
+	elsif(exists $x{qqinners}) { "local (\$::_g0 = do {$code}, \$::_e0 = \"${\_qq_esc $expected}\"); ::ok \$::_g0 =~ quotemeta \$::_e0, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 0); $clear\n" }
+	elsif(exists $x{begins}) { "local (\$::_g0 = do {$code}, \$::_e0 = '${\_q_esc $expected}'); ::ok \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
+	elsif(exists $x{ends}) { "local (\$::_g0 = do {$code}, \$::_e0 = '${\_q_esc $expected}'); ::ok \$::_g0 =~ /\${\\quotemeta \$::_e0}\$/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, -1); $clear\n" }
+	elsif(exists $x{inners}) { "local (\$::_g0 = do {$code}, \$::_e0 = '${\_q_esc $expected}'); ::ok \$::_g0 =~ quotemeta \$::_e0, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 0); $clear\n" }
+	elsif(exists $x{error}) { "eval {$code}; local (\$::_g0 = \$\@, \$::_e0 = '${\_q_esc $expected}'); ok defined(\$::_g0) && \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
+	elsif(exists $x{qqerror}) { "eval {$code}; local (\$::_g0 = \$\@, \$::_e0 = \"${\_qq_esc $expected}\"); ok defined(\$::_g0) && \$::_g0 =~ /^\${\\quotemeta \$::_e0}/, '$q' or ::diag ::string_diff(\$::_g0, \$::_e0, 1); $clear\n" }
+	elsif(exists $x{qrerror}) { "eval {$code}; local (\$::_g0 = \$\@, \$::_e0 = qr{${\_qr_esc $expected}}); ok defined(\$::_g0) && \$::_g0 =~ \$::_e0, '$q' or ::diag defined(\$::_g0)? \"Got:\$::_g0\": 'Got is undef'; $clear\n" }
+	elsif(exists $x{unqrerror}) { "eval {$code}; local (\$::_g0 = \$\@, \$::_e0 = qr{${\_qr_esc $expected}}); ok defined(\$::_g0) && \$::_g0 !~ \$::_e0, '$q' or ::diag defined(\$::_g0)? \"Got:\$::_g0\": 'Got is undef'; $clear\n" }
 	else { # Что-то ужасное вырвалось на волю!
 		"???"
 	}
@@ -539,7 +542,7 @@ Liveman - compiler from Markdown to tests and documentation
 
 =head1 VERSION
 
-3.6
+3.7
 
 =head1 SYNOPSIS
 

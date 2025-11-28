@@ -10,7 +10,7 @@ use Liveman::Project;
 
 my $liveman_project = Liveman::Project->new;
 
-$::_g0 = do {ref $liveman_project}; $::_e0 = "Liveman::Project"; ::ok $::_g0 eq $::_e0, 'ref $liveman_project  # => Liveman::Project' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {ref $liveman_project}, $::_e0 = "Liveman::Project"); ::ok $::_g0 eq $::_e0, 'ref $liveman_project  # => Liveman::Project' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # # DESCRIPTION

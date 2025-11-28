@@ -11,7 +11,7 @@ use Liveman::Cpanfile;
 chmod 0755, $_ for qw!script/test_script bin/tool!;
 
 $::cpanfile = Liveman::Cpanfile->new;
-$::_g0 = do {$::cpanfile->cpanfile}; $::_e0 = do {<< 'END'}; ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$::cpanfile->cpanfile # -> << \'END\'' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {$::cpanfile->cpanfile}, $::_e0 = do {<< 'END'}); ::ok defined($::_g0) == defined($::_e0) && ref $::_g0 eq ref $::_e0 && $::_g0 eq $::_e0, '$::cpanfile->cpanfile # -> << \'END\'' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 requires 'perl', '5.22.0';
 
 on 'develop' => sub {
@@ -66,8 +66,8 @@ END
 # Преобразует путь к файлу в имя пакета Perl.
 # 
 ::done_testing; }; subtest 'pkg_from_path ()' => sub { 
-$::_g0 = do {Liveman::Cpanfile::pkg_from_path('lib/My/Module.pm')}; $::_e0 = "My::Module"; ::ok $::_g0 eq $::_e0, 'Liveman::Cpanfile::pkg_from_path(\'lib/My/Module.pm\') # => My::Module' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
-$::_g0 = do {Liveman::Cpanfile::pkg_from_path('lib/My/App.pm')}; $::_e0 = "My::App"; ::ok $::_g0 eq $::_e0, 'Liveman::Cpanfile::pkg_from_path(\'lib/My/App.pm\')    # => My::App' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {Liveman::Cpanfile::pkg_from_path('lib/My/Module.pm')}, $::_e0 = "My::Module"); ::ok $::_g0 eq $::_e0, 'Liveman::Cpanfile::pkg_from_path(\'lib/My/Module.pm\') # => My::Module' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {Liveman::Cpanfile::pkg_from_path('lib/My/App.pm')}, $::_e0 = "My::App"); ::ok $::_g0 eq $::_e0, 'Liveman::Cpanfile::pkg_from_path(\'lib/My/App.pm\')    # => My::App' or ::diag ::_string_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## sc ()
@@ -87,7 +87,7 @@ $::_g0 = do {Liveman::Cpanfile::pkg_from_path('lib/My/App.pm')}; $::_e0 = "My::A
 #@< EOF
 # 
 ::done_testing; }; subtest 'sc ()' => sub { 
-$::_g0 = do {[$::cpanfile->sc]}; $::_e0 = do {[qw!bin/tool script/test_script!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->sc] # --> [qw!bin/tool script/test_script!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->sc]}, $::_e0 = do {[qw!bin/tool script/test_script!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->sc] # --> [qw!bin/tool script/test_script!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## pm ()
@@ -110,7 +110,7 @@ $::_g0 = do {[$::cpanfile->sc]}; $::_e0 = do {[qw!bin/tool script/test_script!]}
 #@< EOF
 # 
 ::done_testing; }; subtest 'pm ()' => sub { 
-$::_g0 = do {[$::cpanfile->pm]}; $::_e0 = do {[qw!lib/My/Module.pm lib/My/Other.pm!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->pm]  # --> [qw!lib/My/Module.pm lib/My/Other.pm!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->pm]}, $::_e0 = do {[qw!lib/My/Module.pm lib/My/Other.pm!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->pm]  # --> [qw!lib/My/Module.pm lib/My/Other.pm!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## mod ()
@@ -118,7 +118,7 @@ $::_g0 = do {[$::cpanfile->pm]}; $::_e0 = do {[qw!lib/My/Module.pm lib/My/Other.
 # Возвращает список имен пакетов проекта соответствующих модулям в директории `lib/`.
 # 
 ::done_testing; }; subtest 'mod ()' => sub { 
-$::_g0 = do {[$::cpanfile->mod]}; $::_e0 = do {[qw/My::Module My::Other/]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->mod]  # --> [qw/My::Module My::Other/]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->mod]}, $::_e0 = do {[qw/My::Module My::Other/]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->mod]  # --> [qw/My::Module My::Other/]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## md ()
@@ -141,7 +141,7 @@ $::_g0 = do {[$::cpanfile->mod]}; $::_e0 = do {[qw/My::Module My::Other/]}; ::is
 #@< EOF
 # 
 ::done_testing; }; subtest 'md ()' => sub { 
-$::_g0 = do {[$::cpanfile->md]}; $::_e0 = do {[qw!lib/My/Module.md!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->md]  # --> [qw!lib/My/Module.md!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->md]}, $::_e0 = do {[qw!lib/My/Module.md!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->md]  # --> [qw!lib/My/Module.md!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## md_mod ()
@@ -149,7 +149,7 @@ $::_g0 = do {[$::cpanfile->md]}; $::_e0 = do {[qw!lib/My/Module.md!]}; ::is_deep
 # Список внедрённых в `*.md` пакетов.
 # 
 ::done_testing; }; subtest 'md_mod ()' => sub { 
-$::_g0 = do {[$::cpanfile->md_mod]}; $::_e0 = do {[qw!My My::Third!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->md_mod]  # --> [qw!My My::Third!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->md_mod]}, $::_e0 = do {[qw!My My::Third!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->md_mod]  # --> [qw!My My::Third!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## deps ()
@@ -157,7 +157,7 @@ $::_g0 = do {[$::cpanfile->md_mod]}; $::_e0 = do {[qw!My My::Third!]}; ::is_deep
 # Список зависимостей явно указанных в скриптах и модулях без пакетов проекта.
 # 
 ::done_testing; }; subtest 'deps ()' => sub { 
-$::_g0 = do {[$::cpanfile->deps]}; $::_e0 = do {[qw!Data::Printer List::Util common::sense strict warnings!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->deps]  # --> [qw!Data::Printer List::Util common::sense strict warnings!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->deps]}, $::_e0 = do {[qw!Data::Printer List::Util common::sense strict warnings!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->deps]  # --> [qw!Data::Printer List::Util common::sense strict warnings!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## t_deps ()
@@ -169,7 +169,7 @@ $::_g0 = do {[$::cpanfile->deps]}; $::_e0 = do {[qw!Data::Printer List::Util com
 # 3. Внедрённых в `*.md` пакетов.
 # 
 ::done_testing; }; subtest 't_deps ()' => sub { 
-$::_g0 = do {[$::cpanfile->t_deps]}; $::_e0 = do {[qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util String::Diff Term::ANSIColor Test::More Turbin open!]}; ::is_deeply $::_g0, $::_e0, '[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util String::Diff Term::ANSIColor Test::More Turbin open!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
+local ($::_g0 = do {[$::cpanfile->t_deps]}, $::_e0 = do {[qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util String::Diff Term::ANSIColor Test::More Turbin open!]}); ::is_deeply $::_g0, $::_e0, '[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util String::Diff Term::ANSIColor Test::More Turbin open!]' or ::diag ::_struct_diff($::_g0, $::_e0); undef $::_g0; undef $::_e0;
 
 # 
 # ## cpanfile ()
