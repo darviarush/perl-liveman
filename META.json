@@ -109,7 +109,7 @@
          "web" : "https://github.com/darviarush/perl-liveman"
       }
    },
-   "version" : "4.0",
+   "version" : "4.1",
    "x_authority" : "cpan:DART",
    "x_contributors" : [
       "Yaroslav O. Kosmina <dart@cpan.org>",
