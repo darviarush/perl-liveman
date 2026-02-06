@@ -74,6 +74,8 @@
             "Text::Trim" : "0",
             "UUID" : "0.37",
             "common::sense" : "3.75",
+            "open" : "0",
+            "parent" : "0",
             "perl" : "v5.22.0"
          }
       },
