@@ -146,9 +146,11 @@ sub get_pkg_version {
 
 # Возвращает примерный cpanfile
 sub cpanfile {
-	my ($self) = @_;
+	my ($self, $with_version) = @_;
 
-	my $req = sub { my ($pkg, $version) = $self->get_pkg_version($_); $pkg? "requires '$pkg', '$version';": () };
+	my $req = $with_version
+		? sub { my ($pkg, $version) = $self->get_pkg_version($_); $pkg? "requires '$pkg', '$version';": () }
+		: sub { "requires '$_';" };
 	
 	my $requires = join "\n", List::Util::uniqstr map { $req->() } $self->deps;
 	my $t_requires = join "", List::Util::uniqstr map { "\t${ \$req->() }\n" } $self->t_deps;
@@ -224,17 +226,17 @@ Liveman::Cpanfile - Perl project dependency analyzer
 		requires 'File::Path';
 		requires 'File::Slurper';
 		requires 'File::Spec';
+		requires 'open';
 		requires 'Scalar::Util';
 		requires 'String::Diff';
 		requires 'Term::ANSIColor';
 		requires 'Test::More';
 		requires 'Turbin';
-		requires 'open';
 	};
 	
+	requires 'common::sense';
 	requires 'Data::Printer';
 	requires 'List::Util';
-	requires 'common::sense';
 	requires 'strict';
 	requires 'warnings';
 	END
@@ -333,7 +335,7 @@ List of packages embedded in C<*.md>.
 
 List of dependencies explicitly specified in scripts and modules without project packages.
 
-	[$::cpanfile->deps]  # --> [qw!Data::Printer List::Util common::sense strict warnings!]
+	[$::cpanfile->deps]  # --> [qw!common::sense Data::Printer List::Util strict warnings!]
 
 =head2 t_deps ()
 
@@ -349,7 +351,7 @@ List of dependencies from tests except:
 
 =back
 
-	[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec Scalar::Util String::Diff Term::ANSIColor Test::More Turbin open!]
+	[$::cpanfile->t_deps]  # --> [qw!Car::Auto Carp Cwd Data::Dumper File::Basename File::Find File::Path File::Slurper File::Spec open Scalar::Util String::Diff Term::ANSIColor Test::More Turbin!]
 
 =head2 cpanfile ()
 

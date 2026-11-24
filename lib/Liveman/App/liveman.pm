@@ -20,6 +20,7 @@ my $parse_options_ok = GetOptions(
     'f|force!'    => \( my $compile_force = 0 ),
     'a|append!'   => \( my $append = 0 ),
     'A|new!'      => \( my $project = 0 ),
+    'V|with-version!' => \( my $cpanfile_with_version = 0 ),
     'D|cpanfile!' => \( my $cpanfile = 0 ),
     'd|diff_cpanfile:s' => \( my $diff_cpanfile ),
 );
@@ -55,14 +56,14 @@ elsif($append) {
 }
 elsif($cpanfile) {
     require Liveman::Cpanfile;
-    print Liveman::Cpanfile->new->cpanfile;
+    print Liveman::Cpanfile->new->cpanfile($cpanfile_with_version);
 }
 elsif(defined $diff_cpanfile) {
 	require File::Spec;
 	require File::Slurper;
 	require File::Path;
 	require Liveman::Cpanfile;
-    my $cpanfile = Liveman::Cpanfile->new->cpanfile;
+    my $cpanfile = Liveman::Cpanfile->new->cpanfile($cpanfile_with_version);
 
     my $cpanfile_path = File::Spec->catdir(File::Spec->tmpdir, '.liveman');
     File::Path::mkpath($cpanfile_path);
@@ -177,6 +178,10 @@ Create a new repository.
 =item * I<License> is a license name, for example, GPLv3 or perl_5.
 
 =back
+
+B<-V>, B<--with-version>
+
+Adds version to C<requires> by outputting C<-D>/C<--cpanfile> and C<-d>/C<--diff-cpanfile>
 
 B<-D>, B<--cpanfile>
 
