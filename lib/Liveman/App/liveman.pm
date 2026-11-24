@@ -24,20 +24,20 @@ my $parse_options_ok = GetOptions(
     'd|diff_cpanfile:s' => \( my $diff_cpanfile ),
 );
 
-if ( !$parse_options_ok ) {
+if( !$parse_options_ok ) {
     pod2usage(2);
 }
-elsif ($help) {
+elsif($help) {
     pod2usage(
         -input    => $INC{__PACKAGE__ =~ s/::/\//gr . ".pm"},
         -sections => "NAME|SYNOPSIS|DESCRIPTION|OPTIONS",
         -verbose  => 99
     );
 }
-elsif ($version) {
+elsif($version) {
     print Liveman->VERSION, "\n";
 }
-elsif ($man) {
+elsif($man) {
     pod2usage(
         -input   => $INC{__PACKAGE__ =~ s/::/\//gr . ".pm"},
         -exitval => 0,

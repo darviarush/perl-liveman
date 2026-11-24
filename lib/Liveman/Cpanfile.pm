@@ -23,7 +23,7 @@ sub pkg_from_path(;$) {
 # Список файлов scripts/* и bin/*
 sub sc {
 	my ($self) = @_;
-	@{$self->{sc} //= [sort(find_wanted(sub { -f $_ and do { open my $f, '<:utf8', $_; my $x = <$f> =~ /^#!.*\bperl\b/; close $f; $x } }, "script", "bin"))]}
+	@{$self->{sc} //= [sort(find_wanted(sub { -f $_ and do { open my $f, '<:encoding(UTF-8)', $_; my $x = <$f> =~ /^#!.*\bperl\b/; close $f; $x } }, "script", "bin"))]}
 }
 
 # Список файлов lib/*.pm
