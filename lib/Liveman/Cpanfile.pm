@@ -102,7 +102,7 @@ sub deps {
 		}
 
 		delete @mod{$self->mod};
-		sort keys %mod
+		sort { fc $a cmp fc $b } keys %mod
 	}]}
 }
 
@@ -128,16 +128,30 @@ sub t_deps {
 		delete @mod{$self->mod};
 		delete @mod{$self->md_mod};
 		delete @mod{$self->deps};
-		sort keys %mod
+		sort { fc $a cmp fc $b } keys %mod
 	}]}
+}
+
+my %PKG_VERSION;
+# Возвращает пакет с версией в иерархии
+sub get_pkg_version {
+	my ($self, $pkg) = @_;
+	
+	for(;;) {
+		my $version = $PKG_VERSION{$pkg} //= `perl -e 'use $pkg; print $pkg->VERSION' 2> /dev/null`;
+		return $pkg, $version if $version ne '';
+		$pkg =~ s/::\w+$// or return;
+	}
 }
 
 # Возвращает примерный cpanfile
 sub cpanfile {
 	my ($self) = @_;
 
-	my $requires = join "\n", map "requires '$_';", $self->deps;
-	my $t_requires = join "", map "\trequires '$_';\n", $self->t_deps;
+	my $req = sub { my ($pkg, $version) = $self->get_pkg_version($_); $pkg? "requires '$pkg', '$version';": () };
+	
+	my $requires = join "\n", List::Util::uniqstr map { $req->() } $self->deps;
+	my $t_requires = join "", List::Util::uniqstr map { "\t${ \$req->() }\n" } $self->t_deps;
 
 	<< "END";
 requires 'perl', '5.22.0';
