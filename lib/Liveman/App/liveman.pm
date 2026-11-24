@@ -43,7 +43,8 @@ elsif ($man) {
         -exitval => 0,
         -verbose => 2,
     );
-} elsif($project) {
+}
+elsif($project) {
     require Liveman::Project;
     Liveman::Project->new(pkg => $ARGV[0], license => $ARGV[1])->make;
 }
